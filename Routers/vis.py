@@ -1,0 +1,14 @@
+
+class_room
+student_id
+student_name
+standard
+hour
+date
+day
+period
+subject
+emotion
+continuos_emotion
+attendance
+continues_attendance
