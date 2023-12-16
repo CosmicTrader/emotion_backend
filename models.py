@@ -19,23 +19,35 @@ class User(Base):
     mobile_no = Column(String(20), nullable=True)
     image = Column(MEDIUMBLOB, nullable=True)
 
-class Teacher(Base):
-    __tablename__ = 'teacher_details'
+# class Teacher(Base):
+#     __tablename__ = 'teacher_details'
+#     timestamp = Column(TIMESTAMP, server_default=func.now())
+#     id = Column(Integer, primary_key=True)
+
+#     teacher_id = Column(Integer, nullable=False, unique=True)
+#     subject = Column(String(100), nullable= True)
+
+#     class_id = Column(Integer, nullable = True)
+#     first_name = Column(String(100), nullable= False)
+#     last_name = Column(String(100), nullable= False)
+#     email = Column(String(100), nullable=True, unique=True)
+#     mobile_no = Column(String(20), nullable=True)
+#     image = Column(MEDIUMBLOB, nullable=True)
+#     thumbnail = Column(MEDIUMBLOB, nullable=True)
+#     video_location = Column(String(500), nullable= True)
+#     face_embeddings = Column(MEDIUMBLOB, nullable=True)
+
+
+class Courses(Base):
+    __tablename__ = 'courses'
     timestamp = Column(TIMESTAMP, server_default=func.now())
     id = Column(Integer, primary_key=True)
 
-    teacher_id = Column(Integer, nullable=False, unique=True)
-    subject = Column(String(100), nullable= True)
+    course_id = Column(Integer, unique=True, nullable= False)
+    course_name = Column(String(100))
+    course_description = Column(String(1000))
 
-    class_id = Column(Integer, nullable = True)
-    first_name = Column(String(100), nullable= False)
-    last_name = Column(String(100), nullable= False)
-    email = Column(String(100), nullable=True, unique=True)
-    mobile_no = Column(String(20), nullable=True)
-    image = Column(MEDIUMBLOB, nullable=True)
-    thumbnail = Column(MEDIUMBLOB, nullable=True)
-    video_location = Column(String(500), nullable= True)
-    face_embeddings = Column(MEDIUMBLOB, nullable=True)
+    enrollments = relationship('Enrollment', back_populates='course')
 
 class Student(Base):
     __tablename__ = 'student_details'
@@ -43,10 +55,6 @@ class Student(Base):
     id = Column(Integer, primary_key=True)
 
     student_id = Column(Integer, nullable = False, unique= True)
-    standard = Column(String(100), nullable=True)
-    stream = Column(String(100), nullable= True)
-
-    class_id = Column(Integer, nullable = True)
     first_name = Column(String(100), nullable= False)
     last_name = Column(String(100), nullable= False)
     email = Column(String(100), nullable=True, unique=True)
@@ -54,6 +62,17 @@ class Student(Base):
     image = Column(MEDIUMBLOB, nullable=True)
     thumbnail = Column(MEDIUMBLOB, nullable=True)
     face_embeddings = Column(MEDIUMBLOB, nullable=True)
+
+    enrollments = relationship('Enrollment', back_populates='student')
+
+class Enrollment(Base):
+    __tablename__ = 'enrollments'
+    enrollment_id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey('student_details.student_id'))
+    course_id = Column(Integer, ForeignKey('courses.course_id'))
+
+    student = relationship('Student', back_populates='enrollments')
+    course = relationship('Courses', back_populates='enrollments')
 
 # class Emotions(Base):
 #     __tablename__ = 'emotions'
@@ -83,6 +102,13 @@ class Student(Base):
 #     teacher_id = Column(String(100), ForeignKey("teacher_details.teacher_id", ondelete='set null'), nullable=True)
 #     lacture_starting_time = Column(Time)
 #     lacture_ending_time = Column(Time)
+
+
+
+
+
+
+
 
 class Camera_Settings(Base):
     __tablename__ = 'camera_settings'

@@ -16,12 +16,17 @@ def student_registration(student_details: schemas.StudentRegistration, db: Sessi
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
             "Not authorized to perform requested action" ))
 
-    student = db.query(models.Student).filter(
+    _id = db.query(models.Student).filter(
         models.Student.student_id == student_details.student_id).first()
-
-    if student:
+    if _id:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"Id '{student_details.student_id}' is already registered"))
+
+    email = db.query(models.Student).filter(
+        models.Student.email == student_details.email).first()
+    if email:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
+            f"Email-Id '{student_details.email}' is already registered"))
 
     student_details.image = backend_utils.base64_to_image(student_details.image) if student_details.image != '' else None
     student_details.video = backend_utils.generate_face_embeddings(student_details.video) if student_details.video != '' else None

@@ -11,6 +11,8 @@ import dateparser
 
 router = APIRouter(prefix="/events", tags=['events'])
 blogger = logging.getLogger('backend_logger')
+
+
 @router.post('/get_events')
 def get_events(event_query: schemas.EventPage, db: Session = Depends(get_db), 
                current_user: int = Depends(oauth2.get_current_user)):
@@ -100,44 +102,6 @@ def download_alerts_csv(event_query: schemas.EventCount, db: Session = Depends(g
                     headers = { 'Content-Disposition': f'attachment; filename="{str(event_query.date.date()) }.csv"' } 
                     )
 
-@router.post('/download_pdf')
-def download_alerts_pdf(event_query: schemas.EventCount, db: Session = Depends(get_db), 
-                        current_user: int = Depends(oauth2.get_current_user)):
-    print(event_query.__dict__)
-    try:
-        event_query.date = dateparser.parse(event_query.date)
-    except:
-        event_query.date = datetime.datetime.today().date()
-
-    try:
-        event_query.end_date = dateparser.parse(event_query.end_date)
-    except:
-        event_query.end_date = event_query.date
-    
-    events_alias = aliased(models.Events)
-    images_alias = aliased(models.Images)
-
-    db_query = db.query(events_alias.id, events_alias.timestamp, events_alias.camera_name,
-                        events_alias.location, events_alias.vehicle_category, events_alias.event, 
-                        events_alias.note, events_alias.vehicle_number, images_alias.image)
-
-    db_query = db_query.outerjoin( images_alias, images_alias.event_id == events_alias.id )
-
-    db_query = db_query.filter(events_alias.date >= event_query.date, events_alias.date <= event_query.end_date)
-    
-    if event_query.event != 'all':
-        db_query = db_query.filter(events_alias.event == event_query.event)
-
-    event_list = db_query.all()
-
-    headers = {'Sr No':40, 'Date Time':70, 'Cam Name':70, 'Location':60, 
-               'Vehicle':45, 'Alert':50, 'Speed':40, 'Num Plate':80, 'Image':110}
-
-    pdf_file = generate_pdf(event_list, headers)
-
-    return Response(content=pdf_file.getvalue(), media_type="application/pdf",  
-                    headers={'Content-Disposition': f'attachment; filename="{str(event_query.date.date())}.pdf"'}
-                    )
 
 @router.post('/get_events_count')
 def get_events_count(event_query: schemas.EventCount, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -160,108 +124,9 @@ def get_events_count(event_query: schemas.EventCount, db: Session = Depends(get_
     
     return results_dict
 
-
 @router.post('/reset_camera_counting', status_code=status.HTTP_200_OK)
 def reset_counting(camera_number:schemas.CameraNumber, db: Session = Depends(get_db), 
                    current_user: int = Depends(oauth2.get_current_user)):
     
     reset_camera_counting(camera_number= camera_number.camera_number, db= db)
     return
-
-# @router.post('/get_dropdown')
-# def get_camera_name_number(event_query:schemas.SummaryIds, db: Session = Depends(get_db), 
-#                            current_user: int = Depends(oauth2.get_current_user)):
-
-#     try:
-#         event_query.start_date_time = dateparser.parse(event_query.start_date_time)
-#     except:
-#         event_query.start_date_time = datetime.datetime.today().date()
-#     try:
-#         event_query.end_date_time = dateparser.parse(event_query.end_date_time)
-#     except:
-#         event_query.end_date_time = datetime.datetime.today().date()
-
-#     summary_query = db.query( models.Counting_Summary.camera_name, models.Counting_Summary.camera_number ).\
-#                             filter( models.Counting_Summary.start_time >= event_query.start_date_time,
-#                                    models.Counting_Summary.start_time <= event_query.end_date_time )
-
-#     if event_query.camera_number:
-#         summary_query = summary_query.filter_by(camera_number = event_query.camera_number)
-
-#     summary_data = summary_query.distinct().all()
-
-#     return summary_data
-
-# @router.post('/get_summary_ids')
-# def get_counting_summary_ids(event_query:schemas.SummaryIds, db: Session = Depends(get_db), 
-#                              current_user: int = Depends(oauth2.get_current_user)):
-
-#     try:
-#         event_query.start_date_time = dateparser.parse(event_query.start_date_time)
-#         event_query.end_date_time = dateparser.parse(event_query.end_date_time)
-#     except:
-#         event_query.start_date_time = datetime.datetime.today().date()
-#         event_query.end_date_time = datetime.datetime.today().date()
-
-#     summary_query = db.query( models.Counting_Summary.id, models.Counting_Summary.camera_number ).\
-#                             filter( models.Counting_Summary.start_time >= event_query.start_date_time,
-#                                    models.Counting_Summary.start_time <= event_query.end_date_time ).\
-#                             order_by( models.Counting_Summary.start_time.desc() )
-
-#     if event_query.camera_number is not None:
-#         summary_query = summary_query.filter_by(camera_number = event_query.camera_number)
-    
-#     summary_data = summary_query.distinct().all()
-    
-#     return summary_data
-
-# @router.post('/get_summary_data')
-# def get_summary_data(event_query:schemas.SummaryData, db: Session = Depends(get_db), 
-#                      current_user: int = Depends(oauth2.get_current_user)):
-
-#     try:
-#         event_query.start_date_time = dateparser.parse(event_query.start_date_time)
-#         event_query.end_date_time = dateparser.parse(event_query.end_date_time)
-#     except:
-#         event_query.start_date_time = datetime.datetime.today().date()
-#         event_query.end_date_time = datetime.datetime.today().date()
-
-#     summary_query = db.query( models.Counting_Summary).\
-#                             filter( models.Counting_Summary.start_time >= event_query.start_date_time,
-#                                    models.Counting_Summary.start_time <= event_query.end_date_time ).\
-#                             order_by( models.Counting_Summary.start_time.desc() )
-    
-#     if event_query.camera_number is not None:
-#         summary_query = summary_query.filter_by(camera_number = event_query.camera_number)
-    
-#     total_events = summary_query.count()
-#     offset = (event_query.page_number - 1) * event_query.page_size
-#     limit = event_query.page_size
-
-#     summary_data = summary_query.offset(offset).limit(limit).all()
-#     response_summary_data = [a.__dict__ for a in summary_data]
-    
-#     return {'data':response_summary_data, 'page_number': event_query.page_number, 
-#             'page_size': event_query.page_size, 'total_records': total_events
-#             }
-
-# @router.post('/get_counting_data')
-# def get_counting_data(event_query:schemas.CountingData, db: Session = Depends(get_db), 
-#                       current_user: int = Depends(oauth2.get_current_user)):
-    
-#     counting_query = db.query( models.Counting ).order_by( models.Counting.start_time.desc() )
-    
-#     if event_query.summary_id:
-#         counting_query = counting_query.filter_by(summary_id = event_query.summary_id)
-    
-#     total_events = counting_query.count()
-#     offset = (event_query.page_number - 1) * event_query.page_size
-#     limit = event_query.page_size
-    
-#     counting_data = counting_query.offset(offset).limit(limit).all()
-    
-#     response_counting_data = [a.__dict__ for a in counting_data]
-
-#     return {'data':response_counting_data, 'page_number': event_query.page_number, 
-#             'page_size': event_query.page_size, 'total_records': total_events
-#             }
