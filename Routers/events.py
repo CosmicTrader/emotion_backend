@@ -22,11 +22,11 @@ def get_events(event_query: schemas.EventPage, db: Session = Depends(get_db),
     except:
         event_query.date = datetime.datetime.today().date()
 
-    query = db.query(models.Events.id, models.Events.date, models.Events.time, 
-                     models.Events.camera_name, models.Events.note,models.Events.event, 
-                     models.Events.thumbnail, models.Events.tele_created, 
-                     models.Events.vehicle_number, models.Events.vehicle_category).\
-                    filter(models.Events.date==event_query.date)
+    query = db.query(models.Event.id, models.Event.date, models.Event.time, 
+                     models.Event.camera_name, models.Event.note,models.Event.event, 
+                     models.Event.thumbnail, models.Event.tele_created, 
+                     models.Event.vehicle_number, models.Event.vehicle_category).\
+                    filter(models.Event.date==event_query.date)
 
     if event_query.event != 'all':
         query = query.filter_by(event=event_query.event)
@@ -61,7 +61,7 @@ def get_events(event_query: schemas.EventPage, db: Session = Depends(get_db),
 @router.post('/get_event_image')
 def get_event_image(id:int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
-    image = db.query(models.Images.image).filter_by(event_id = id).first()
+    image = db.query(models.Image.image).filter_by(event_id = id).first()
     if image:
         return base64.b64encode(image.image).decode('utf-8')
     else:
@@ -83,13 +83,13 @@ def download_alerts_csv(event_query: schemas.EventCount, db: Session = Depends(g
     except:
         event_query.end_date = event_query.date
 
-    db_query = db.query(models.Events.date, models.Events.time, models.Events.event, 
-                        models.Events.camera_name, models.Events.vehicle_number, 
-                        models.Events.vehicle_category).filter(models.Events.date >= event_query.date, 
-                                                               models.Events.date <= event_query.end_date)
+    db_query = db.query(models.Event.date, models.Event.time, models.Event.event, 
+                        models.Event.camera_name, models.Event.vehicle_number, 
+                        models.Event.vehicle_category).filter(models.Event.date >= event_query.date, 
+                                                               models.Event.date <= event_query.end_date)
 
     if event_query.event != 'all':
-        db_query = db_query.filter(models.Events.event == event_query.event)
+        db_query = db_query.filter(models.Event.event == event_query.event)
 
     event_list = db_query.all()
 
@@ -115,10 +115,10 @@ def get_events_count(event_query: schemas.EventCount, db: Session = Depends(get_
     except:
         event_query.end_date = event_query.date
 
-    query = db.query(models.Events.event, func.count(models.Events.event)).\
-                filter(models.Events.date >= event_query.date, models.Events.date <= event_query.end_date)
+    query = db.query(models.Event.event, func.count(models.Event.event)).\
+                filter(models.Event.date >= event_query.date, models.Event.date <= event_query.end_date)
 
-    results = query.group_by(models.Events.event).all()
+    results = query.group_by(models.Event.event).all()
 
     results_dict = {event: count for event, count in results}
     

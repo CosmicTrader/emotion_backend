@@ -28,33 +28,6 @@ class UserOut(BaseModel):
     class Config:
         orm_mode = True
 
-class StudentRegistration(BaseModel):
-    student_id: int
-    first_name: str
-    last_name: str
-    image: Optional[str] = ''
-    video: Optional[str] = ''
-    email: Optional[str] = ''
-    mobile_no: Optional[str] = ''
-
-class StudentQuery(BaseModel):
-    _course: bool
-    class_ids: List[int]
-    courses: List[str]
-    date_added: List[str]
-
-
-class TeacherRegistration(BaseModel):
-    class_id: int
-    teacher_id: int
-    first_name: str
-    last_name: str
-    subject: Optional[str] = ''
-    image: Optional[str] = ''
-    video: Optional[str] = ''
-    email: Optional[str] = ''
-    mobile_no: Optional[str] = ''
-
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -66,14 +39,11 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     id: Optional[str] = None
 
-
-
 class AreaSelection(BaseModel):
     camera_number: int
     assign: list
     class Config:
         orm_mode = True
-
 
 class AddCamera(BaseModel):
     camera_number: int
@@ -91,7 +61,6 @@ class CameraOut(BaseModel):
     class Config:
         orm_mode = True
 
-
 class EventCount(BaseModel):
     event: Optional[str] = None
     date: Optional[str] = None
@@ -106,21 +75,62 @@ class EventPage(BaseModel):
 class Email(BaseModel):
     email: str
 
-class StudentId(BaseModel):
-    student_ids: List[int]
-
 class CameraNumber(BaseModel):
     camera_number: int
 
 
-class NewCourse(BaseModel):
+
+
+class StudentRegistration(BaseModel):
+    student_id: int
+    first_name: str
+    last_name: str
+    image: Optional[str] = ''
+    video: Optional[str] = ''
+    email: Optional[str] = ''
+    mobile_no: Optional[str] = ''
+
+class StudentQuery(BaseModel):
+    course_: bool = True
+    room_numbers: List[int]
+    courses: List[str]
+    start_date: Optional[str] = ''
+    end_date: Optional[str] = ''
+
+class StudentId(BaseModel):
+    student_ids: List[int]
+
+class Course(BaseModel):
     course_id: int
     course_name: str
     course_description: str
+    room_number: Optional[int] = -1
+    start_time: Optional[str] = ''
+    end_time: Optional[str] = ''
 
 class CoueseId(BaseModel):
     course_id: int
 
 class CourseStudentData(BaseModel):
     course_id: int
+    room_number: int
+    start_time: str
+    end_time: str
     student_ids: List[int]
+
+
+
+
+
+
+
+# class TeacherRegistration(BaseModel):
+#     class_id: int
+#     teacher_id: int
+#     first_name: str
+#     last_name: str
+#     subject: Optional[str] = ''
+#     image: Optional[str] = ''
+#     video: Optional[str] = ''
+#     email: Optional[str] = ''
+#     mobile_no: Optional[str] = ''

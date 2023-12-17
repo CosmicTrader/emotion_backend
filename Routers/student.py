@@ -1,6 +1,6 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, between
 from datetime import datetime
 import models, schemas, backend_utils, oauth2
 from database import get_db
@@ -64,24 +64,41 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
 
     filter_conditions = []
 
-    if 0 not in student_query.class_ids:
-        filter_conditions.append(models.Student.class_id.in_(student_query.class_ids))
+    # if 0 not in student_query.room_numbers:
+    #     filter_conditions.append(models.Student.class_id.in_(student_query.room_numbers))
 
-    if 'all' not in  student_query.streams:
-        filter_conditions.append(models.Student.stream.in_(student_query.streams))
+    if 'all' not in  student_query.courses:
+        student_ids = db.query(models.Enrollment.student_id).filter(models.Enrollment.course_id.in_(student_query.courses))
+        # filter_conditions.append(models.Student.courses.in_(student_query.courses))
 
-    if 'all' not in  student_query.date_added:
-        date_added_conditions = [func.DATE(models.Student.timestamp) == datetime.strptime(date, "%Y-%m-%d").date() for date in student_query.date_added]
-        filter_conditions.append(or_(*date_added_conditions))
+    if student_query.start_date != '':
+        _start = func.DATE(models.Student.timestamp) >= datetime.strptime(student_query.start_date, "%Y-%m-%d").date()
+        filter_conditions.append(or_(_start))
 
-    filtered_students = db.query(models.Student).filter(*filter_conditions).all()
+    if student_query.end_date != '':
+        _end   = func.DATE(models.Student.timestamp) <= datetime.strptime(student_query.end_date, "%Y-%m-%d").date()
+        filter_conditions.append(or_(_end))
 
+    # filtered_students = db.query(models.Student).filter(*filter_conditions).all()
+
+    filtered_students = (
+        db.query(models.Student)
+        .join(models.Enrollment, models.Enrollment.student_id == models.Student.student_id)
+        .join(models.Course, models.Enrollment.course_id == models.Course.course_id)
+        .filter(
+            models.Enrollment.course_id.in_(student_query.courses),
+            models.Course.room_number.in_(student_query.room_numbers),
+            between(models.Student.timestamp, student_query.start_date, student_query.end_date)
+        )
+        # .order_by(models.Student.timestamp)  # You can adjust the ordering as needed
+        .all()
+    )
     student_details = []
     for student in filtered_students:
         _student = student.__dict__
         student_out = _student.copy()
         for a in _student:
-            if a not in ['student_id','standard','stream','class_id','first_name','last_name','email','mobile_no','thumbnail']:
+            if a not in ['student_id','first_name','last_name','email','mobile_no','thumbnail']:
                 student_out.pop(a)
         student_out['thumbnail'] = base64.b64encode(student_out['thumbnail']).decode('utf-8') if student_out['thumbnail'] != None else ''
         student_details.append(student_out)

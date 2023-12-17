@@ -6,7 +6,7 @@ import asyncio
 import logging
 import json
 
-from Routers import auth, user, camera, events, event_socket, student, course, vis
+from Routers import auth, user, camera, events, event_socket, student, course, reports
 from Routers.event_socket import sio_app, check_for_event
 import models
 from database import engine
@@ -41,7 +41,7 @@ app.include_router(camera.router)
 app.include_router(events.router)
 app.include_router(event_socket.router)
 app.include_router(course.router)
-app.include_router(vis.router)
+app.include_router(reports.router)
 
 app.mount("/ws", app = sio_app)
 # app.mount("/camera_feed", StaticFiles(directory="camera"), name='camera')

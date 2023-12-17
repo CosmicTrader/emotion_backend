@@ -121,7 +121,7 @@ def get_model_settings(db: Session=Depends(get_db), current_user: int=Depends(oa
 @router.get('/model_names')
 def get_model_names(db:Session = Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
 
-    names = db.query(models.Models).all()
+    names = db.query(models.Model).all()
     names = [n.__dict__ for n in names]
     model_names = [{'model_name':n['model_name']} for n in names]
     
@@ -135,7 +135,7 @@ def add_camera(camera_details: schemas.AddCamera, db: Session = Depends(get_db),
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
             "Not authorized to perform requested action" ))
 
-    existing_camera = db.query(models.Camera_Settings).filter_by(camera_number=camera_details.camera_number).first()
+    existing_camera = db.query(models.Camera_Setting).filter_by(camera_number=camera_details.camera_number).first()
     
     if existing_camera:
         existing_camera.rtsp = camera_details.rtsp
@@ -148,8 +148,8 @@ def add_camera(camera_details: schemas.AddCamera, db: Session = Depends(get_db),
         return {"message": f"Details for camera number {camera_details.camera_number} updated successfully"}
 
     else:
-        number_of_cameras = len(db.query(models.Camera_Settings).all())
-        max_number_of_cameras = db.query(models.Device_Details).first().number_of_cameras
+        number_of_cameras = len(db.query(models.Camera_Setting).all())
+        max_number_of_cameras = db.query(models.Device_Detail).first().number_of_cameras
         if number_of_cameras >= max_number_of_cameras:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail = f"Camera limit of {max_number_of_cameras} has been reached")
@@ -157,7 +157,7 @@ def add_camera(camera_details: schemas.AddCamera, db: Session = Depends(get_db),
         new_camera = camera_details.__dict__
         new_camera['user_id'] = current_user.id
 
-        camera = models.Camera_Settings(**new_camera)
+        camera = models.Camera_Setting(**new_camera)
         db.add(camera)
         db.commit()
         db.refresh(camera)
@@ -172,7 +172,7 @@ def delete_camera(camera_number: schemas.CameraNumber, db: Session = Depends(get
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
             "Not authorized to perform requested action" ))
 
-    camera = db.query(models.Camera_Settings).filter_by(camera_number = camera_number.camera_number).first()
+    camera = db.query(models.Camera_Setting).filter_by(camera_number = camera_number.camera_number).first()
 
     if camera :
         db.delete(camera)
@@ -188,7 +188,7 @@ def delete_camera(camera_number: schemas.CameraNumber, db: Session = Depends(get
 @ router.get('/get_cameras')
 def get_camera_details(db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
 
-    cameras=db.query(models.Camera_Settings).all()
+    cameras=db.query(models.Camera_Setting).all()
     
     camera_details=[]
     for camera in cameras:
@@ -211,7 +211,7 @@ def get_camera_image(camera_number: schemas.CameraNumber, current_user: int=Depe
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
             "Not authorized to perform requested action" ))
 
-    camera_details = db.query(models.Camera_Settings).\
+    camera_details = db.query(models.Camera_Setting).\
                         filter_by(camera_number=int(camera_number.camera_number)).first()
     
     if camera_details:

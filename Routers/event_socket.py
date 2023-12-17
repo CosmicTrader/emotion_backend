@@ -27,13 +27,13 @@ async def check_for_event(db):
     # await broadcast_count_data()
 
     send_alerts = []
-    new_alerts = db.query(models.Events.camera_number, models.Events.event, models.Events.id).\
-                filter_by(wb_created=False).order_by(desc(models.Events.id)).limit(10).all()
+    new_alerts = db.query(models.Event.camera_number, models.Event.event, models.Event.id).\
+                filter_by(wb_created=False).order_by(desc(models.Event.id)).limit(10).all()
 
     for alert in new_alerts:
         send_alerts.append(alert)
 
-    stmt = update(models.Events).where(models.Events.wb_created == False).values(wb_created=True)
+    stmt = update(models.Event).where(models.Event.wb_created == False).values(wb_created=True)
     db.execute(stmt)
     db.commit()
 

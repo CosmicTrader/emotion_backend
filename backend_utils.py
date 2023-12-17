@@ -42,12 +42,12 @@ def make_static_image(camera_rtsp):
 
 def initialise_change(db):
 
-    reset_state = models.Changes(
+    reset_state = models.Change(
         camera_settings = json.dumps([]),
         reset_counting = json.dumps([])
         )
     
-    _change = db.query(models.Changes).first()
+    _change = db.query(models.Change).first()
     if _change:
         _change = reset_state
     else:
@@ -59,7 +59,7 @@ def initialise_change(db):
 
 def update_changes(camera_number, db):
 
-    _change = db.query(models.Changes).first()
+    _change = db.query(models.Change).first()
 
     current_state = json.loads(_change.camera_settings)
     current_state.append(camera_number)
@@ -69,7 +69,7 @@ def update_changes(camera_number, db):
     return
 
 def reset_camera_counting(camera_number, db):
-    _change = db.query(models.Changes).first()
+    _change = db.query(models.Change).first()
 
     current_state = json.loads(_change.reset_counting)
     current_state.append(camera_number)
@@ -79,8 +79,18 @@ def reset_camera_counting(camera_number, db):
     return
 
 def get_ip(db):
-    res = db.query(models.Device_Details).first()
-    return res.ip
+    device_detail = db.query(models.Device_Detail).first()
+    if device_detail:
+        return device_detail.ip
+    else:
+        device_detail = models.Device_Detail(
+            ip = '127.0.0.1',
+            number_of_cameras = 5
+            )
+        db.add(device_detail)
+        db.commit()
+        return device_detail.ip
+        
 
 def generate_face_embeddings(video):
     return
