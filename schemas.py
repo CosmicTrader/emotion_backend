@@ -118,8 +118,11 @@ class CourseStudentData(BaseModel):
     end_time: str
     student_ids: List[int]
 
-
-
+class Attendence_Summary(BaseModel):
+    start_date: str
+    end_date: str
+    course_id: List[int]
+    room_number: List[int]
 
 
 

@@ -8,7 +8,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'user_details'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
+    date = Column(Date, server_default=func.current_date())
     id = Column(Integer, primary_key=True)
     owner_id = Column(Integer,ForeignKey("user_details.id", ondelete='set null'), nullable = True)
     is_owner = Column(Boolean, nullable=False)
@@ -21,9 +21,8 @@ class User(Base):
 
 class Course(Base):
     __tablename__ = 'course_details'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
+    date = Column(Date, server_default=func.current_date())
     id = Column(Integer, primary_key=True)
-
     course_id = Column(Integer, nullable= False, unique=True)
     course_name = Column(String(100), nullable= False)
     course_description = Column(String(1000), nullable= False)
@@ -35,9 +34,8 @@ class Course(Base):
 
 class Student(Base):
     __tablename__ = 'student_details'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
+    date = Column(Date, server_default=func.current_date())
     id = Column(Integer, primary_key=True)
-
     student_id = Column(Integer, nullable = False, unique= True)
     first_name = Column(String(100), nullable= False)
     last_name = Column(String(100), nullable= False)
@@ -78,13 +76,13 @@ class Emotion(Base):
 
 class Emotion_Summary(Base):
     __tablename__ = 'emotion_summary'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
+    date = Column(Date, server_default=func.current_date())
     id = Column(Integer, primary_key=True)
     room_number = Column(Integer, nullable = False)
     course_id = Column(Integer, nullable= False)
     course_name = Column(String(100), nullable= False)
-    start_time = Column(TIMESTAMP)
-    end_time = Column(TIMESTAMP)
+    start_time = Column(Time)
+    end_time = Column(Time)
     total_students = Column(Integer, nullable= False)
     anger = Column(Integer, nullable = True)
     disgust = Column(Integer, nullable = True)
@@ -109,13 +107,13 @@ class Attendance(Base):
 
 class Attendence_Summary(Base):
     __tablename__ = 'attendence_summary'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
+    date = Column(Date, server_default=func.current_date())
     id = Column(Integer, primary_key=True)
     room_number = Column(Integer, nullable = False)
     course_id = Column(Integer, nullable= False)
     course_name = Column(String(100), nullable= False)
-    start_time = Column(TIMESTAMP)
-    end_time = Column(TIMESTAMP)
+    start_time = Column(Time)
+    end_time = Column(Time)
     total_students = Column(Integer, nullable= False)
     present = Column(Integer, nullable= False)
     absent = Column(Integer, nullable= False)
@@ -125,7 +123,7 @@ class Attendence_Summary(Base):
     
 class Camera_Setting(Base):
     __tablename__ = 'camera_settings'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
+    date = Column(Date, server_default=func.current_date())
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False)
     camera_number = Column(Integer, nullable=False, unique=True)
@@ -137,7 +135,7 @@ class Camera_Setting(Base):
 
 class Area_Selection(Base):
     __tablename__ = 'area_selections'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
+    date = Column(Date, server_default=func.current_date())
     id = Column(Integer, primary_key=True)
     user_id  = Column(Integer, nullable = False)
     camera_number = Column(Integer, ForeignKey('camera_settings.camera_number', ondelete='CASCADE'), nullable=False)
