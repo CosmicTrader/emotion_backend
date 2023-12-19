@@ -1,14 +1,14 @@
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, func, Boolean, Date, Time, Float
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, func, Boolean, Date, Time, Float, DateTime
 from sqlalchemy import func
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import MEDIUMBLOB
 
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = 'user_details'
-    date = Column(Date, server_default=func.current_date())
+    date = Column(Date)
     id = Column(Integer, primary_key=True)
     owner_id = Column(Integer,ForeignKey("user_details.id", ondelete='set null'), nullable = True)
     is_owner = Column(Boolean, nullable=False)
@@ -21,7 +21,7 @@ class User(Base):
 
 class Course(Base):
     __tablename__ = 'course_details'
-    date = Column(Date, server_default=func.current_date())
+    date = Column(Date)
     id = Column(Integer, primary_key=True)
     course_id = Column(Integer, nullable= False, unique=True)
     course_name = Column(String(100), nullable= False)
@@ -34,7 +34,7 @@ class Course(Base):
 
 class Student(Base):
     __tablename__ = 'student_details'
-    date = Column(Date, server_default=func.current_date())
+    date = Column(Date)
     id = Column(Integer, primary_key=True)
     student_id = Column(Integer, nullable = False, unique= True)
     first_name = Column(String(100), nullable= False)
@@ -76,7 +76,7 @@ class Emotion(Base):
 
 class Emotion_Summary(Base):
     __tablename__ = 'emotion_summary'
-    date = Column(Date, server_default=func.current_date())
+    date = Column(Date)
     id = Column(Integer, primary_key=True)
     room_number = Column(Integer, nullable = False)
     course_id = Column(Integer, nullable= False)
@@ -107,7 +107,7 @@ class Attendance(Base):
 
 class Attendence_Summary(Base):
     __tablename__ = 'attendence_summary'
-    date = Column(Date, server_default=func.current_date())
+    date = Column(Date)
     id = Column(Integer, primary_key=True)
     room_number = Column(Integer, nullable = False)
     course_id = Column(Integer, nullable= False)
@@ -123,7 +123,7 @@ class Attendence_Summary(Base):
     
 class Camera_Setting(Base):
     __tablename__ = 'camera_settings'
-    date = Column(Date, server_default=func.current_date())
+    date = Column(Date)
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False)
     camera_number = Column(Integer, nullable=False, unique=True)
@@ -135,7 +135,7 @@ class Camera_Setting(Base):
 
 class Area_Selection(Base):
     __tablename__ = 'area_selections'
-    date = Column(Date, server_default=func.current_date())
+    date = Column(Date)
     id = Column(Integer, primary_key=True)
     user_id  = Column(Integer, nullable = False)
     camera_number = Column(Integer, ForeignKey('camera_settings.camera_number', ondelete='CASCADE'), nullable=False)
@@ -198,6 +198,15 @@ class Processing(Base):
     model = Column(Float)
     func = Column(Float)
     total = Column(Float)
+
+
+
+
+
+
+
+
+
 
 
 # class Teacher(Base):

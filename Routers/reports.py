@@ -13,8 +13,8 @@ router = APIRouter(prefix="/reports", tags=['reports'])
 blogger = logging.getLogger('backend_logger')
 
 
-@router.post('/get_attendence_summary')
-def get_attendence_summary(params:schemas.Attendence_Summary, db: Session = Depends(get_db), 
+@router.post('/attendence_summary')
+def attendence_summary(params:schemas.SummaryQuery, db: Session = Depends(get_db), 
                              current_user: int = Depends(oauth2.get_current_user)):
 
     try:
@@ -26,12 +26,66 @@ def get_attendence_summary(params:schemas.Attendence_Summary, db: Session = Depe
 
     summary_data = (
         db.query(models.Attendence_Summary)
-        .filter(between(models.Attendence_Summary.timestamp, params.start_date, params.end_date),
+        .filter(models.Attendence_Summary.date >= params.start_date,
+                models.Attendence_Summary.date <=  params.end_date,
                 models.Attendence_Summary.course_id.in_(params.course_id),
                 models.Attendence_Summary.room_number.in_(params.room_number),
                 )
-        .order_by(models.Attendence_Summary.timestamp.asc() 
+        .order_by(models.Attendence_Summary.date.asc() 
                   )
+        .all()
+        )
+
+    return summary_data
+
+
+@router.post('/emotion_summary')
+def emotion_summary(params:schemas.SummaryQuery, db: Session = Depends(get_db), 
+                             current_user: int = Depends(oauth2.get_current_user)):
+
+    try:
+        params.start_date = dateparser.parse(params.start_date)
+        params.end_date = dateparser.parse(params.end_date)
+    except:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
+            f"Date Values are not valid."))
+
+    summary_data = (
+        db.query(models.Emotion_Summary)
+        .filter(models.Attendence_Summary.date >= params.start_date,
+                models.Attendence_Summary.date <=  params.end_date,
+                models.Emotion_Summary.course_id.in_(params.course_id),
+                models.Emotion_Summary.room_number.in_(params.room_number),
+                )
+        .order_by(models.Attendence_Summary.date.asc() 
+                  )
+        .all()
+        )
+
+    return summary_data
+
+
+@router.post('/emotion_data')
+def emotion_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
+                             current_user: int = Depends(oauth2.get_current_user)):
+
+    summary_data = (
+        db.query(models.Emotion)
+        .filter(models.Emotion.id == params.summary_id)
+        .order_by(models.Emotion.timestamp)
+        .all()
+        )
+
+    return summary_data
+
+@router.post('/attendence_data')
+def attendance_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
+                             current_user: int = Depends(oauth2.get_current_user)):
+
+    summary_data = (
+        db.query(models.Attendance)
+        .filter(models.Attendance.id == params.summary_id)
+        .order_by(models.Attendance.timestamp)
         .all()
         )
 

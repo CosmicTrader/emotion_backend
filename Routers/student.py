@@ -32,6 +32,7 @@ def student_registration(student_details: schemas.StudentRegistration, db: Sessi
     student_details.video = backend_utils.generate_face_embeddings(student_details.video) if student_details.video != '' else None
     new_student = models.Student(**student_details.dict(exclude={'video'}))
     new_student.thumbnail = backend_utils.create_thumbnail(new_student.image) if new_student.image != None or '' else None
+    new_student.date = datetime.datetime.today().strftime('%Y-%m-%d')
 
     db.add(new_student)
     db.commit()
@@ -56,30 +57,11 @@ def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), curre
     return
 
 @router.post('/get_all_students')
-def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_db)):#, current_user: int = Depends(oauth2.get_current_user)):
 
-    if current_user.is_admin == False:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail='Not authorized to perform requested action')
-
-    filter_conditions = []
-
-    # if 0 not in student_query.room_numbers:
-    #     filter_conditions.append(models.Student.class_id.in_(student_query.room_numbers))
-
-    if 'all' not in  student_query.courses:
-        student_ids = db.query(models.Enrollment.student_id).filter(models.Enrollment.course_id.in_(student_query.courses))
-        # filter_conditions.append(models.Student.courses.in_(student_query.courses))
-
-    if student_query.start_date != '':
-        _start = func.DATE(models.Student.timestamp) >= datetime.strptime(student_query.start_date, "%Y-%m-%d").date()
-        filter_conditions.append(or_(_start))
-
-    if student_query.end_date != '':
-        _end   = func.DATE(models.Student.timestamp) <= datetime.strptime(student_query.end_date, "%Y-%m-%d").date()
-        filter_conditions.append(or_(_end))
-
-    # filtered_students = db.query(models.Student).filter(*filter_conditions).all()
+    # if current_user.is_admin == False:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+    #                         detail='Not authorized to perform requested action')
 
     filtered_students = (
         db.query(models.Student)
@@ -88,9 +70,10 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
         .filter(
             models.Enrollment.course_id.in_(student_query.courses),
             models.Course.room_number.in_(student_query.room_numbers),
-            between(models.Student.timestamp, student_query.start_date, student_query.end_date)
+            models.Student.date >= student_query.start_date,
+            models.Student.date <= student_query.end_date
         )
-        # .order_by(models.Student.timestamp)  # You can adjust the ordering as needed
+        .order_by(models.Student.date)  # You can adjust the ordering as needed
         .all()
     )
     student_details = []

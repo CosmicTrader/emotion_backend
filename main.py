@@ -35,13 +35,13 @@ app.add_middleware(CORSMiddleware, allow_origins=origins,
                    allow_credentials=True, allow_methods=methods, allow_headers=headers)
 
 app.include_router(user.router)
+app.include_router(reports.router)
 app.include_router(student.router)
 app.include_router(auth.router)
 app.include_router(camera.router)
 app.include_router(events.router)
 app.include_router(event_socket.router)
 app.include_router(course.router)
-app.include_router(reports.router)
 
 app.mount("/ws", app = sio_app)
 # app.mount("/camera_feed", StaticFiles(directory="camera"), name='camera')

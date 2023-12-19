@@ -21,7 +21,7 @@ class UserOut(BaseModel):
     email: EmailStr
     name: str
     mobile_no: str
-    timestamp: datetime
+    date: str
     image: Optional[str] = ''
     is_owner: bool
     is_admin: bool
@@ -118,13 +118,14 @@ class CourseStudentData(BaseModel):
     end_time: str
     student_ids: List[int]
 
-class Attendence_Summary(BaseModel):
+class SummaryQuery(BaseModel):
     start_date: str
     end_date: str
     course_id: List[int]
     room_number: List[int]
 
-
+class SummaryId(BaseModel):
+    summary_id: int
 
 
 # class TeacherRegistration(BaseModel):

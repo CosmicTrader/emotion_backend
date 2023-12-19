@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import models, schemas, backend_utils, oauth2
 from database import get_db
 from pydantic import EmailStr
-import base64, logging
+import base64, logging, datetime
 
 router = APIRouter(prefix="/users", tags=['Users'])
 blogger = logging.getLogger('backend_logger')
@@ -25,6 +25,7 @@ def owner_registration(user_details: schemas.UserRegistration, db: Session = Dep
         
         user_details.image = backend_utils.base64_to_image(user_details.image) if user_details.image != '' else None
         new_user = models.User(**user_details.dict())
+        new_user.date = datetime.datetime.today().strftime('%Y-%m-%d')
         
         db.add(new_user)
         db.commit() 
@@ -34,7 +35,8 @@ def owner_registration(user_details: schemas.UserRegistration, db: Session = Dep
         db.refresh(new_user)
         
         new_user.image = base64.b64encode(new_user.image).decode("utf-8") if new_user.image != None else None
-
+        new_user.date = datetime.datetime.strftime(new_user.date, '%Y-%m-%d')
+        print(new_user.__dict__)
         return new_user
 
 @router.post('/AddUser', status_code=status.HTTP_201_CREATED)
@@ -150,7 +152,7 @@ def get_all_user(db: Session = Depends(get_db), current_user: int = Depends(oaut
         _user = user.__dict__
         user_out = _user.copy()
         for a in _user:
-            if a not in ['name', 'email', 'mobile_no', 'company', 'is_admin', 'image']:
+            if a not in ['name', 'email', 'mobile_no', 'company', 'is_admin', 'image', 'date']:
                 user_out.pop(a)
         user_out['image'] = base64.b64encode(user_out['image']).decode('utf-8') if user_out['image'] != None else ''
         user_details.append(user_out)
