@@ -15,7 +15,7 @@ blogger = logging.getLogger('backend_logger')
 @router.post('/add_course', status_code=status.HTTP_201_CREATED)
 def add_course(course_params: schemas.Course, db: Session= Depends(get_db),
                current_user: int= Depends(oauth2.get_current_user)):
-    
+
     if current_user.is_admin == False:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
             "Not authorized to perform requested action" ))
@@ -83,7 +83,7 @@ def get_courses(db: Session=Depends(get_db), current_user: int=Depends(oauth2.ge
 
     try:
         courses = db.query(models.Course).all()
-        courses_list = [{'created_at': course.timestamp,
+        courses_list = [{'created_at': course.date,
                          'course_id': course.course_id,
                          'name': course.course_name,
                          'description': course.course_description,

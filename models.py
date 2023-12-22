@@ -44,6 +44,8 @@ class Student(Base):
     image = Column(MEDIUMBLOB, nullable=True)
     thumbnail = Column(MEDIUMBLOB, nullable=True)
     face_embeddings = Column(MEDIUMBLOB, nullable=True)
+    embeddings_generated = Column(Boolean)
+    video_path = Column(String(1000))
 
     enrollments = relationship('Enrollment', back_populates='student')
 

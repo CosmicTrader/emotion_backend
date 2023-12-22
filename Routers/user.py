@@ -10,7 +10,7 @@ blogger = logging.getLogger('backend_logger')
 
 @router.post('/AddOwner', status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
 def owner_registration(user_details: schemas.UserRegistration, db: Session = Depends(get_db)):
-    
+
     user_email = db.query(models.User).filter(
         models.User.email == user_details.email).first()
 
@@ -22,21 +22,20 @@ def owner_registration(user_details: schemas.UserRegistration, db: Session = Dep
         user_details.is_admin = True
         user_details.is_owner = True
         user_details.password = backend_utils.hash(user_details.password)
-        
+
         user_details.image = backend_utils.base64_to_image(user_details.image) if user_details.image != '' else None
         new_user = models.User(**user_details.dict())
         new_user.date = datetime.datetime.today().strftime('%Y-%m-%d')
-        
+
         db.add(new_user)
         db.commit() 
         db.refresh(new_user)
         new_user.owner_id = new_user.id
         db.commit()
         db.refresh(new_user)
-        
+
         new_user.image = base64.b64encode(new_user.image).decode("utf-8") if new_user.image != None else None
         new_user.date = datetime.datetime.strftime(new_user.date, '%Y-%m-%d')
-        print(new_user.__dict__)
         return new_user
 
 @router.post('/AddUser', status_code=status.HTTP_201_CREATED)

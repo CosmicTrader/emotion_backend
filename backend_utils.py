@@ -95,19 +95,21 @@ def get_ip(db):
 def generate_face_embeddings(video):
     return
 
+def get_images(image):
+    if image != '':
+        return None, None
+    
+    dp = base64.b64decode(image)
+    image_buffer = cv2.imencode('.png', image)[1]
+    nparr = np.asarray(bytearray(image_buffer), dtype=np.uint8)
 
-def create_thumbnail(image):
-    if image == '' or None:
-        return None
-    try:
-        with Image.open(image) as img:
-            img.thumbnail((100,100))
-            thumbnail_bytes = BytesIO()
-            img.save(thumbnail_bytes, format='JPEG')
-            return thumbnail_bytes.getvalue()
-    except Exception as e:
-        print(f"Error resizing image: {e}")
-        return None
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    resized_image = cv2.resize(image, (100,100), interpolation=cv2.INTER_AREA)
+    thumbnail = cv2.imencode('.png', resized_image)[1]
+
+    return image_buffer, thumbnail
+
+
 
 def generate_pdf(event_list, headers):
 

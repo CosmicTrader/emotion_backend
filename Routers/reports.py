@@ -31,7 +31,7 @@ def attendence_summary(params:schemas.SummaryQuery, db: Session = Depends(get_db
                 models.Attendence_Summary.course_id.in_(params.course_id),
                 models.Attendence_Summary.room_number.in_(params.room_number),
                 )
-        .order_by(models.Attendence_Summary.date.asc() 
+        .order_by(models.Attendence_Summary.date.desc() 
                   )
         .all()
         )
@@ -57,7 +57,7 @@ def emotion_summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
                 models.Emotion_Summary.course_id.in_(params.course_id),
                 models.Emotion_Summary.room_number.in_(params.room_number),
                 )
-        .order_by(models.Attendence_Summary.date.asc() 
+        .order_by(models.Attendence_Summary.date.desc() 
                   )
         .all()
         )
@@ -71,7 +71,7 @@ def emotion_data(params:schemas.SummaryId, db: Session = Depends(get_db),
 
     summary_data = (
         db.query(models.Emotion)
-        .filter(models.Emotion.id == params.summary_id)
+        .filter(models.Emotion.summary_id == params.summary_id)
         .order_by(models.Emotion.timestamp)
         .all()
         )
@@ -84,7 +84,7 @@ def attendance_data(params:schemas.SummaryId, db: Session = Depends(get_db),
 
     summary_data = (
         db.query(models.Attendance)
-        .filter(models.Attendance.id == params.summary_id)
+        .filter(models.Attendance.summary_id == params.summary_id)
         .order_by(models.Attendance.timestamp)
         .all()
         )
