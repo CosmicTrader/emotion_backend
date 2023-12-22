@@ -16,6 +16,31 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `user_details`
+--
+
+DROP TABLE IF EXISTS `user_details`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_details` (
+  `date` date DEFAULT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `owner_id` int DEFAULT NULL,
+  `is_owner` tinyint(1) NOT NULL,
+  `is_admin` tinyint(1) DEFAULT NULL,
+  `name` varchar(50) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `mobile_no` varchar(20) DEFAULT NULL,
+  `image` mediumblob,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  KEY `owner_id` (`owner_id`),
+  CONSTRAINT `user_details_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `user_details` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `user_details`
 --
 
@@ -34,4 +59,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-19 17:37:50
+-- Dump completed on 2023-12-22 12:17:07
