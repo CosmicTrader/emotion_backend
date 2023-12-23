@@ -34,7 +34,7 @@ CREATE TABLE `area_selections` (
   PRIMARY KEY (`id`),
   KEY `camera_number` (`camera_number`),
   CONSTRAINT `area_selections_ibfk_1` FOREIGN KEY (`camera_number`) REFERENCES `camera_settings` (`camera_number`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +43,7 @@ CREATE TABLE `area_selections` (
 
 LOCK TABLES `area_selections` WRITE;
 /*!40000 ALTER TABLE `area_selections` DISABLE KEYS */;
-INSERT INTO `area_selections` VALUES ('2023-12-17',1,1,1,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59');
+INSERT INTO `area_selections` VALUES ('2023-12-17',1,1,1,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',2,1,2,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',3,1,3,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',4,1,4,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',5,1,5,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',6,1,6,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',7,1,7,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',8,1,8,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',9,1,9,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',10,1,10,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',11,1,11,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',12,1,12,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59'),('2023-12-17',13,1,13,'emotion','[[[0,0],[0,416],[416,416],[416,0]]]','00:00:00','23:59:59');
 /*!40000 ALTER TABLE `area_selections` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -56,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-22 12:17:09
+-- Dump completed on 2023-12-23 21:37:31
