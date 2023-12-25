@@ -26,12 +26,15 @@ CREATE TABLE `enrollment_details` (
   `enrollment_id` int NOT NULL AUTO_INCREMENT,
   `student_id` int DEFAULT NULL,
   `course_id` int DEFAULT NULL,
+  `session_id` int DEFAULT NULL,
   PRIMARY KEY (`enrollment_id`),
   KEY `student_id` (`student_id`),
   KEY `course_id` (`course_id`),
+  KEY `session_id` (`session_id`),
   CONSTRAINT `enrollment_details_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `student_details` (`student_id`),
-  CONSTRAINT `enrollment_details_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `course_details` (`course_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `enrollment_details_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `course_details` (`course_id`),
+  CONSTRAINT `enrollment_details_ibfk_3` FOREIGN KEY (`session_id`) REFERENCES `session_details` (`session_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +43,7 @@ CREATE TABLE `enrollment_details` (
 
 LOCK TABLES `enrollment_details` WRITE;
 /*!40000 ALTER TABLE `enrollment_details` DISABLE KEYS */;
-INSERT INTO `enrollment_details` VALUES (1,1,1),(2,2,1),(3,3,1),(4,1,2),(5,2,2),(6,3,2),(7,7,3),(8,8,3),(9,9,3),(10,4,1),(11,5,1),(12,6,1),(13,4,2),(14,5,2),(15,6,2),(16,7,4),(17,8,4),(18,9,4),(19,10,3),(20,11,3),(21,12,3),(22,10,4),(23,11,4),(24,12,4);
+INSERT INTO `enrollment_details` VALUES (1,1,1,1),(2,2,1,1),(3,3,1,1),(4,4,2,2),(5,5,2,2),(6,6,2,2),(7,1,1,4),(8,2,1,4),(9,3,1,4),(10,4,1,4),(11,5,1,4),(12,6,1,4);
 /*!40000 ALTER TABLE `enrollment_details` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -53,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:31
+-- Dump completed on 2023-12-25 17:52:06

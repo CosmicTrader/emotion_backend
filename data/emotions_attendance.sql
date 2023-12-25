@@ -30,8 +30,8 @@ CREATE TABLE `attendance` (
   `is_present` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `summary_id` (`summary_id`),
-  CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`summary_id`) REFERENCES `attendence_summary` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`summary_id`) REFERENCES `summary` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +40,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES ('2023-12-19 11:37:12',1,1,1,1),('2023-12-19 11:37:12',2,1,2,1),('2023-12-19 11:37:12',3,1,3,0),('2023-12-19 11:37:12',4,2,1,1),('2023-12-19 11:37:12',5,2,2,1),('2023-12-19 11:37:12',6,2,3,1);
+INSERT INTO `attendance` VALUES ('2023-12-01 04:35:00',1,1,1,1),('2023-12-01 04:35:00',2,1,2,1),('2023-12-01 04:35:00',3,1,3,1);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -53,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:31
+-- Dump completed on 2023-12-25 17:52:05

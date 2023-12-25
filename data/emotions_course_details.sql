@@ -28,12 +28,10 @@ CREATE TABLE `course_details` (
   `course_id` int NOT NULL,
   `course_name` varchar(100) NOT NULL,
   `course_description` varchar(1000) NOT NULL,
-  `room_number` int DEFAULT NULL,
-  `start_time` time DEFAULT NULL,
-  `end_time` time DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `course_id` (`course_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `course_id` (`course_id`),
+  UNIQUE KEY `course_name` (`course_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +40,7 @@ CREATE TABLE `course_details` (
 
 LOCK TABLES `course_details` WRITE;
 /*!40000 ALTER TABLE `course_details` DISABLE KEYS */;
-INSERT INTO `course_details` VALUES ('2023-12-17',1,1,'basic','basic course',1,'10:00:00','12:00:00'),('2023-12-17',2,2,'medium','medium course',1,'12:00:00','14:00:00'),('2023-12-17',3,3,'advance','advance course',2,'10:00:00','12:00:00'),('2023-12-17',4,4,'industry','industry course',2,'12:00:00','14:00:00'),('2023-12-17',5,5,'basic','basic course',3,'10:00:00','12:00:00'),('2023-12-17',6,6,'medium','medium course',3,'12:00:00','14:00:00'),('2023-12-17',7,7,'advance','advance course',4,'10:00:00','12:00:00'),('2023-12-17',8,8,'industry','industry course',4,'12:00:00','14:00:00'),(NULL,9,11,'some random course','some random course',NULL,'11:30:00','13:30:00');
+INSERT INTO `course_details` VALUES ('2023-12-25',1,1,'science','science'),('2023-12-25',2,2,'maths','maths'),('2023-12-25',3,3,'history','history');
 /*!40000 ALTER TABLE `course_details` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -55,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:32
+-- Dump completed on 2023-12-25 17:52:05

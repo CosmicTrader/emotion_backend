@@ -1,5 +1,4 @@
 from typing import List
-from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
@@ -39,12 +38,6 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     id: Optional[str] = None
 
-class AreaSelection(BaseModel):
-    camera_number: int
-    assign: list
-    class Config:
-        orm_mode = True
-
 class AddCamera(BaseModel):
     camera_number: int
     name: str
@@ -61,25 +54,12 @@ class CameraOut(BaseModel):
     class Config:
         orm_mode = True
 
-class EventCount(BaseModel):
-    event: Optional[str] = None
-    date: Optional[str] = None
-    end_date: Optional[str] = None
-    
-class EventPage(BaseModel):
-    event: str
-    date: str
-    page_number: int
-    page_size: int
 
 class Email(BaseModel):
     email: str
 
 class CameraNumber(BaseModel):
     camera_number: int
-
-
-
 
 class StudentRegistration(BaseModel):
     student_id: int
@@ -104,37 +84,30 @@ class Course(BaseModel):
     course_id: int
     course_name: str
     course_description: str
-    room_number: Optional[int] = -1
-    start_time: Optional[str] = ''
-    end_time: Optional[str] = ''
 
-class CoueseId(BaseModel):
-    course_id: int
+class CourseName(BaseModel):
+    course_name: str
 
-class CourseStudentData(BaseModel):
+class SessionStudentData(BaseModel):
     course_id: int
     room_number: int
+    start_date: str
+    end_date: str
     start_time: str
     end_time: str
     student_ids: List[int]
 
+class SessionId(BaseModel):
+    session_id: int
+
 class SummaryQuery(BaseModel):
     start_date: str
     end_date: str
-    course_id: List[int]
+    course_name: List[str]
     room_number: List[int]
 
 class SummaryId(BaseModel):
     summary_id: int
 
-
-# class TeacherRegistration(BaseModel):
-#     class_id: int
-#     teacher_id: int
-#     first_name: str
-#     last_name: str
-#     subject: Optional[str] = ''
-#     image: Optional[str] = ''
-#     video: Optional[str] = ''
-#     email: Optional[str] = ''
-#     mobile_no: Optional[str] = ''
+class HomeSummary(BaseModel):
+    date: str

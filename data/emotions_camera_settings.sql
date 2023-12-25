@@ -32,7 +32,7 @@ CREATE TABLE `camera_settings` (
   `rtsp` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `camera_number` (`camera_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,7 +41,6 @@ CREATE TABLE `camera_settings` (
 
 LOCK TABLES `camera_settings` WRITE;
 /*!40000 ALTER TABLE `camera_settings` DISABLE KEYS */;
-INSERT INTO `camera_settings` VALUES ('2023-12-17',1,1,1,1,'one','121.mp4'),('2023-12-17',2,1,2,1,'two','recording.mp4'),('2023-12-17',3,1,3,1,'three','recording.mp4'),('2023-12-17',4,1,4,1,'four','recording.mp4'),('2023-12-17',5,1,5,1,'five','recording.mp4'),('2023-12-17',6,1,6,2,'one','recording.mp4'),('2023-12-17',7,1,7,2,'two','recording.mp4'),('2023-12-17',8,1,8,2,'three','recording.mp4'),('2023-12-17',9,1,9,2,'four','recording.mp4'),('2023-12-17',10,1,10,3,'one','recording.mp4'),('2023-12-17',11,1,11,3,'two','recording.mp4'),('2023-12-17',12,1,12,4,'one','recording.mp4'),('2023-12-17',13,1,13,4,'two','recording.mp4');
 /*!40000 ALTER TABLE `camera_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:32
+-- Dump completed on 2023-12-25 17:52:05

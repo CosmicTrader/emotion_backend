@@ -27,18 +27,17 @@ CREATE TABLE `emotions` (
   `id` int NOT NULL AUTO_INCREMENT,
   `summary_id` int DEFAULT NULL,
   `student_id` int NOT NULL,
-  `subject` varchar(100) DEFAULT NULL,
   `anger` int DEFAULT NULL,
   `disgust` int DEFAULT NULL,
   `fear` int DEFAULT NULL,
   `happy` int DEFAULT NULL,
   `neutral` int DEFAULT NULL,
-  `sadness` int DEFAULT NULL,
+  `sad` int DEFAULT NULL,
   `surprise` int DEFAULT NULL,
   `unknown` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `summary_id` (`summary_id`),
-  CONSTRAINT `emotions_ibfk_1` FOREIGN KEY (`summary_id`) REFERENCES `emotion_summary` (`id`)
+  CONSTRAINT `emotions_ibfk_1` FOREIGN KEY (`summary_id`) REFERENCES `summary` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -48,7 +47,7 @@ CREATE TABLE `emotions` (
 
 LOCK TABLES `emotions` WRITE;
 /*!40000 ALTER TABLE `emotions` DISABLE KEYS */;
-INSERT INTO `emotions` VALUES ('2023-12-21 14:52:57',1,1,1,'basic',10,10,10,10,10,10,10,30),('2023-12-21 14:52:57',2,1,2,'basic',10,10,10,10,10,10,10,30),('2023-12-21 14:52:57',3,1,3,'basic',10,10,10,10,10,10,10,30);
+INSERT INTO `emotions` VALUES ('2023-12-01 04:35:00',1,1,1,10,10,10,10,10,10,10,30),('2023-12-01 04:35:00',2,1,2,10,10,10,10,10,10,10,30),('2023-12-01 04:35:00',3,1,3,10,10,10,10,10,10,10,30);
 /*!40000 ALTER TABLE `emotions` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -61,4 +60,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:35
+-- Dump completed on 2023-12-25 17:52:06

@@ -1,17 +1,15 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func, between, and_
-from datetime import datetime
 import models, schemas, backend_utils, oauth2
 from database import get_db
-import base64, logging
+import base64, logging, datetime
 
 router = APIRouter(prefix="/students", tags=['Students'])
 blogger = logging.getLogger('backend_logger')
 
 @router.post('/add_student', status_code=status.HTTP_201_CREATED)
 def student_registration(student_details: schemas.StudentRegistration, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-
     if current_user.is_admin == False:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
             "Not authorized to perform requested action" ))
@@ -28,13 +26,13 @@ def student_registration(student_details: schemas.StudentRegistration, db: Sessi
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"Email-Id '{student_details.email}' is already registered"))
 
-    # image, thumbnail = backend_utils.get_images(student_details.image)
-    student_details.image = backend_utils.base64_to_image(student_details.image) if student_details.image != '' else None
-    student_details.video = backend_utils.generate_face_embeddings(student_details.video) if student_details.video != '' else None
+    image, thumbnail = backend_utils.get_images(student_details.image)
+    student_details.image = image
     new_student = models.Student(**student_details.dict(exclude={'video'}))
-    new_student.thumbnail = backend_utils.create_thumbnail(new_student.image) if new_student.image != None or '' else None
+    new_student.thumbnail = thumbnail
     new_student.date = datetime.datetime.today().strftime('%Y-%m-%d')
-
+    # student_details.video = backend_utils.generate_face_embeddings(student_details.video) if student_details.video != '' else None
+    
     db.add(new_student)
     db.commit()
 
@@ -50,7 +48,6 @@ def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), curre
     for student_id in ids.student_ids:
         student = db.query(models.Student).filter(
             models.Student.student_id == student_id).first()
-        print(student)
 
         if student:
             db.delete(student)
@@ -67,8 +64,8 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
     queries = []
     student_details = []
     
-    if 0 not in student_query.room_numbers:
-        queries.append(and_(models.Course.room_number.in_(student_query.room_numbers)))
+    # if 0 not in student_query.room_numbers:
+    #     queries.append(and_(models.Course.room_number.in_(student_query.room_numbers)))
 
     if 'all' not in student_query.courses:
         queries.append(and_(models.Enrollment.course_id.in_(student_query.courses)))
@@ -83,7 +80,7 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
         filtered_students = (
             db.query(models.Student,
                      func.group_concat(models.Enrollment.course_id).label('course_ids'),
-                     func.group_concat(models.Course.room_number).label('room_numbers')
+                    #  func.group_concat(models.Course.room_number).label('room_numbers')
                      )
                     .join(models.Enrollment, models.Enrollment.student_id == models.Student.student_id)
                     .join(models.Course, models.Enrollment.course_id == models.Course.course_id)

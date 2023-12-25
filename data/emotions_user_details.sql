@@ -37,7 +37,7 @@ CREATE TABLE `user_details` (
   UNIQUE KEY `email` (`email`),
   KEY `owner_id` (`owner_id`),
   CONSTRAINT `user_details_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `user_details` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,7 +46,7 @@ CREATE TABLE `user_details` (
 
 LOCK TABLES `user_details` WRITE;
 /*!40000 ALTER TABLE `user_details` DISABLE KEYS */;
-INSERT INTO `user_details` VALUES ('2023-12-18',3,3,1,1,'harsh','harsh@camsec.ai','$2b$12$qvHKXMWpLgcbobNnxm6QDenj2Y7KonnFkuQF38XWWzyapmfiu3I6m','7069909990',NULL);
+INSERT INTO `user_details` VALUES ('2023-12-25',1,1,1,1,'harsh kantariya','harsh@camsec.ai','$2b$12$Psjmk2jJ0lscCkNm8FzqxeEpltn5uROGlyqVdSKVldrzLg49BzEJy','7069909990',NULL);
 /*!40000 ALTER TABLE `user_details` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -59,4 +59,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:35
+-- Dump completed on 2023-12-25 17:52:06

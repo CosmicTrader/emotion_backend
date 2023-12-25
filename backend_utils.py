@@ -1,13 +1,6 @@
 from passlib.context import CryptContext
 import base64, json, cv2
 import models
-from PIL import Image
-
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
-from reportlab.lib.styles import getSampleStyleSheet
-from io import BytesIO
 import numpy as np
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -68,16 +61,6 @@ def update_changes(camera_number, db):
 
     return
 
-def reset_camera_counting(camera_number, db):
-    _change = db.query(models.Change).first()
-
-    current_state = json.loads(_change.reset_counting)
-    current_state.append(camera_number)
-    _change.camera_settings = json.dumps(list(set(current_state)))
-    db.commit()
-    
-    return
-
 def get_ip(db):
     device_detail = db.query(models.Device_Detail).first()
     if device_detail:
@@ -90,79 +73,15 @@ def get_ip(db):
         db.add(device_detail)
         db.commit()
         return device_detail.ip
-        
-
-def generate_face_embeddings(video):
-    return
 
 def get_images(image):
-    if image != '':
+    if image == '':
         return None, None
-    
-    dp = base64.b64decode(image)
-    image_buffer = cv2.imencode('.png', image)[1]
-    nparr = np.asarray(bytearray(image_buffer), dtype=np.uint8)
+    _image = base64_to_image(image)
+    nparr = np.frombuffer(_image, np.uint8)
 
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     resized_image = cv2.resize(image, (100,100), interpolation=cv2.INTER_AREA)
     thumbnail = cv2.imencode('.png', resized_image)[1]
 
-    return image_buffer, thumbnail
-
-
-
-def generate_pdf(event_list, headers):
-
-    pdf = BytesIO()
-    doc = SimpleDocTemplate(pdf,
-                            pdfpagesize=letter,
-                            leftMargin = 0,
-                            rightMargin = 0,
-                            topMargin = 10,
-                            bottomMargin= 10 )
-    elements = []
-    styles = getSampleStyleSheet()
-
-    table_data = [[a for a in headers.keys()]]
-    col_widths = [a for a in headers.values()]
-
-    for row in event_list:
-        wrapped_row = []
-        for i, cell in enumerate(row[:-1]):
-            cell_content = str(cell)
-            wrapped_cell = Paragraph(cell_content, styles['Normal'])
-            wrapped_row.append(wrapped_cell)
-
-        if row[-1]:
-            nparr = np.frombuffer(row[-1], np.uint8)  # Convert binary data to NumPy array
-            cv2_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)  # Decode the image using OpenCV
-            resized_image = cv2.resize(cv2_image, (400, 400))
-            resized_binary_image = cv2.imencode('.jpg', resized_image)[1].tobytes()
-            wrapped_row.append(Image(BytesIO(resized_binary_image), width=100, height=100))
-
-        table_data.append(wrapped_row)
-
-    table = Table(table_data, rowHeights=110, repeatRows=1, colWidths=col_widths)
-
-    style = TableStyle([
-        # Column Headers Property
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey), #header
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke), #header
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 50),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        #table data property
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige), #table_data
-        ('BOTTOMPADDING', (0, 1), (-2, -1), 40),
-        ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black)]
-    )
-
-    table.setStyle(style)
-    elements.append(table)
-    doc.build(elements)
-    pdf.seek(0)
-
-    return pdf
+    return _image, thumbnail

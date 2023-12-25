@@ -16,30 +16,36 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `images`
+-- Table structure for table `session_details`
 --
 
-DROP TABLE IF EXISTS `images`;
+DROP TABLE IF EXISTS `session_details`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `images` (
+CREATE TABLE `session_details` (
+  `date` date DEFAULT NULL,
   `id` int NOT NULL AUTO_INCREMENT,
-  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `event_id` int DEFAULT NULL,
-  `image` mediumblob,
+  `session_id` int NOT NULL,
+  `course_name` varchar(100) NOT NULL,
+  `course_description` varchar(1000) NOT NULL,
+  `room_number` int DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `start_time` time DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `event_id` (`event_id`),
-  CONSTRAINT `images_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `session_id` (`session_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `images`
+-- Dumping data for table `session_details`
 --
 
-LOCK TABLES `images` WRITE;
-/*!40000 ALTER TABLE `images` DISABLE KEYS */;
-/*!40000 ALTER TABLE `images` ENABLE KEYS */;
+LOCK TABLES `session_details` WRITE;
+/*!40000 ALTER TABLE `session_details` DISABLE KEYS */;
+INSERT INTO `session_details` VALUES ('2023-12-25',1,1,'science','maths',1,'2023-12-01','2023-12-31','10:00:00','12:00:00'),('2023-12-25',2,2,'maths','science',2,'2023-12-01','2023-12-31','10:00:00','12:00:00'),('2023-12-25',3,3,'history','history',3,'2023-12-01','2023-12-31','10:00:00','12:00:00'),('2023-12-25',4,4,'science','maths',1,'2023-12-01','2023-12-31','12:00:00','14:00:00');
+/*!40000 ALTER TABLE `session_details` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -51,4 +57,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:35
+-- Dump completed on 2023-12-25 17:52:05

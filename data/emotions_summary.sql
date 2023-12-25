@@ -16,41 +16,45 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `emotion_summary`
+-- Table structure for table `summary`
 --
 
-DROP TABLE IF EXISTS `emotion_summary`;
+DROP TABLE IF EXISTS `summary`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `emotion_summary` (
+CREATE TABLE `summary` (
   `date` date DEFAULT NULL,
   `id` int NOT NULL AUTO_INCREMENT,
   `room_number` int NOT NULL,
-  `course_id` int NOT NULL,
+  `session_id` int NOT NULL,
   `course_name` varchar(100) NOT NULL,
+  `completed` tinyint(1) DEFAULT NULL,
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
-  `total_students` int NOT NULL,
+  `total` int NOT NULL,
+  `present` int NOT NULL,
+  `absent` int NOT NULL,
+  `ratio` int NOT NULL,
   `anger` int DEFAULT NULL,
   `disgust` int DEFAULT NULL,
   `fear` int DEFAULT NULL,
   `happy` int DEFAULT NULL,
   `neutral` int DEFAULT NULL,
-  `sadness` int DEFAULT NULL,
+  `sad` int DEFAULT NULL,
   `surprise` int DEFAULT NULL,
   `unknown` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `emotion_summary`
+-- Dumping data for table `summary`
 --
 
-LOCK TABLES `emotion_summary` WRITE;
-/*!40000 ALTER TABLE `emotion_summary` DISABLE KEYS */;
-INSERT INTO `emotion_summary` VALUES ('2023-12-17',1,1,1,'basic','10:00:00','12:00:00',20,20,10,10,30,10,10,5,5),('2023-12-17',2,1,2,'medium','12:00:00','14:00:00',40,10,20,10,30,10,10,5,5);
-/*!40000 ALTER TABLE `emotion_summary` ENABLE KEYS */;
+LOCK TABLES `summary` WRITE;
+/*!40000 ALTER TABLE `summary` DISABLE KEYS */;
+INSERT INTO `summary` VALUES ('2023-12-01',1,1,1,'science',1,'10:00:00','12:00:00',3,3,0,100,10,10,10,10,10,10,10,30);
+/*!40000 ALTER TABLE `summary` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -62,4 +66,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-23 21:37:34
+-- Dump completed on 2023-12-25 17:52:06
