@@ -54,6 +54,18 @@ def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), curre
     db.commit()
     return
 
+@router.post('/students_for_session')
+def students_for_session(session_id: schemas.SessionId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    enrolled_students = (db.query(models.Student.student_id, models.Student.first_name,
+                                  models.Student.last_name, models.Student.email, models.Student.thumbnail)
+                                  .join(models.Enrollment)
+                                  .filter(models.Enrollment.session_id == session_id.session_id)
+                                  .all()
+                                  )
+
+    return enrolled_students    
+
+
 @router.post('/get_all_students')
 def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
@@ -123,5 +135,3 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
         student_details.append(student_out)
 
     return student_details
-
-    

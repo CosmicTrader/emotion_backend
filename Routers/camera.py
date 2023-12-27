@@ -27,7 +27,7 @@ def add_camera(camera_details: schemas.AddCamera, db: Session = Depends(get_db),
     if existing_camera:
         existing_camera.rtsp = camera_details.rtsp
         existing_camera.name = camera_details.name
-        existing_camera.class_id = camera_details.class_id
+        existing_camera.room_number = camera_details.room_number
 
         db.commit()
 

@@ -11,6 +11,17 @@ import dateparser
 router = APIRouter(prefix="/reports", tags=['reports'])
 blogger = logging.getLogger('backend_logger')
 
+'''
+add default values in summary and other reports routes
+'''
+
+@router.get('/get_filter_data')
+def filter_data(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    course_name = [a for (a,) in db.query(models.Session.course_name).distinct().all()]
+    room_number = [a for (a,) in db.query(models.Session.room_number).distinct().all()]
+    session_id = [a for (a,) in db.query(models.Session.session_id).distinct().all()] 
+   
+    return {'course_name': course_name, 'room_number': room_number, 'session_id': session_id}
 
 @router.post('/summary')
 def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db), 
@@ -23,39 +34,41 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"Date Values are not valid."))
 
+    try:
+        params.start_time = datetime.datetime.strptime(params.start_time, '%H:%M')
+        params.end_time = datetime.datetime.strptime(params.end_time, '%H:%M')
+    except:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
+            f"Time Values are not valid."))
+
     summary_data = (
         db.query(models.Summary)
         .filter(models.Summary.date >= params.start_date,
                 models.Summary.date <=  params.end_date,
+                models.Summary.time >= params.start_time,
+                models.Summary.time <= params.end_time,
                 models.Summary.course_name.in_(params.course_name),
                 models.Summary.room_number.in_(params.room_number),
+                models.Summary.session_id.in_(params.session_id),
                 )
         .order_by(models.Summary.date.desc() 
                   )
         .all()
         )
-
     return summary_data
 
-
 @router.post('/emotion_data')
-def emotion_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
+def summary_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
                              current_user: int = Depends(oauth2.get_current_user)):
 
-    summary_data = (
+    emotion_data = (
         db.query(models.Emotion)
         .filter(models.Emotion.summary_id == params.summary_id)
         .order_by(models.Emotion.student_id)
         .all()
         )
 
-    return summary_data
-
-@router.post('/attendence_data')
-def attendance_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
-                             current_user: int = Depends(oauth2.get_current_user)):
-
-    summary_data = (
+    attendance_data = (
         db.query(models.Attendance)
         .filter(models.Attendance.summary_id == params.summary_id)
         .order_by(models.Attendance.student_id)
@@ -64,8 +77,17 @@ def attendance_data(params:schemas.SummaryId, db: Session = Depends(get_db),
 
     return summary_data
 
+# @router.post('/attendence_data')
+# def attendance_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
+#                              current_user: int = Depends(oauth2.get_current_user)):
+#     summary_data = (
+#         db.query(models.Attendance)
+#         .filter(models.Attendance.summary_id == params.summary_id)
+#         .order_by(models.Attendance.student_id)
+#         .all()
+#         )
 
-
+#     return summary_data
 
 @router.post('/get_home_page_summary')
 def get_home_page_summary(query_params: schemas.HomeSummary, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -140,5 +162,5 @@ def get_live_class_summary(db: Session = Depends(get_db), current_user: int = De
 #     csv_file = data.to_csv(index=False)
 
 #     return Response(content = csv_file, media_type="text/csv", 
-#                     headers = { 'Content-Disposition': f'attachment; filename="{str(event_query.date.date()) }.csv"' } 
+#                     headers = { 'Content-Disposition': f'attachment; filename="{str(event_query.date.date()) }.csv"' }
 #                     )

@@ -1,7 +1,7 @@
 from typing import List
 from typing import Optional
 from pydantic import BaseModel, EmailStr
-
+import datetime
 
 class Users(BaseModel):
     email: EmailStr
@@ -42,7 +42,7 @@ class AddCamera(BaseModel):
     camera_number: int
     name: str
     rtsp: str
-    class_id : str
+    room_number : str
     class Config:
         orm_mode = True
 
@@ -50,7 +50,7 @@ class CameraOut(BaseModel):
     camera_number: int
     name: str
     rtsp: str
-    ip_name: str
+    room_number: str
     class Config:
         orm_mode = True
 
@@ -66,7 +66,7 @@ class StudentRegistration(BaseModel):
     first_name: str
     last_name: str
     image: Optional[str] = ''
-    video: Optional[str] = ''
+    images: Optional[str] = ''
     email: Optional[str] = ''
     mobile_no: Optional[str] = ''
 
@@ -88,23 +88,27 @@ class Course(BaseModel):
 class CourseName(BaseModel):
     course_name: str
 
-class SessionStudentData(BaseModel):
-    course_id: int
+class SessionData(BaseModel):
+    course_name: str
     room_number: int
     start_date: str
     end_date: str
     start_time: str
     end_time: str
+    session_id: str
     student_ids: List[int]
 
 class SessionId(BaseModel):
     session_id: int
 
 class SummaryQuery(BaseModel):
-    start_date: str
-    end_date: str
+    start_date: Optional[str] = datetime.datetime.today().date()
+    end_date: Optional[str] = datetime.datetime.today().date()
+    start_time: Optional[str]= '00:00:00'
+    end_time: Optional[str] = '23:59:59'
     course_name: List[str]
     room_number: List[int]
+    session_id: List[int]
 
 class SummaryId(BaseModel):
     summary_id: int
