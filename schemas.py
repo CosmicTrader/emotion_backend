@@ -66,7 +66,7 @@ class StudentRegistration(BaseModel):
     first_name: str
     last_name: str
     image: Optional[str] = ''
-    images: Optional[str] = ''
+    images: List[Optional[str]] = []
     email: Optional[str] = ''
     mobile_no: Optional[str] = ''
 

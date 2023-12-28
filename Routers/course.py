@@ -82,15 +82,15 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
     if params.start_time == '':
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"Start Time '{params.start_time}' is not valid"))
-    
+
     if params.end_time == '':
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"End Time '{params.end_time}' is not valid"))
-    
+
     if params.start_date == '':
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"Start Time '{params.start_date}' is not valid"))
-    
+
     if params.end_date == '':
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"End Time '{params.end_date}' is not valid"))
@@ -104,7 +104,7 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
     #     for ses in session:
     #         if params.start_time < ses.end_time:
     #             pass
-    
+
     existing_session = db.query(models.Session).filter_by(session_id = params.session_id).first()
     if existing_session:
         pass

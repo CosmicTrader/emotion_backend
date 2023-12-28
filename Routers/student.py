@@ -1,9 +1,12 @@
+import base64
+from PIL import Image
+from io import BytesIO
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func, between, and_
 import models, schemas, backend_utils, oauth2
 from database import get_db
-import base64, logging, datetime
+import base64, logging, datetime, os
 
 router = APIRouter(prefix="/students", tags=['Students'])
 blogger = logging.getLogger('backend_logger')
@@ -27,16 +30,25 @@ def student_registration(student_details: schemas.StudentRegistration, db: Sessi
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"Email-Id '{student_details.email}' is already registered"))
 
-    image, thumbnail = backend_utils.get_images(student_details.image)
-    student_details.image = image
-    new_student = models.Student(**student_details.dict(exclude={'video'}))
-    new_student.thumbnail = thumbnail
+    new_student = models.Student(**student_details.dict(exclude={'video', 'images'}))
+    
+    new_student.image, new_student.thumbnail = backend_utils.get_images(student_details.image)
     new_student.date = datetime.datetime.today().strftime('%Y-%m-%d')
-    student_details.images = backend_utils.generate_face_embeddings(student_details.images) if student_details.images != '' else None
+    
+    if not os.path.exists(os.path.join('photos', str(student_details.student_id))):
+        os.mkdir(os.path.join('photos', str(student_details.student_id)))
+
+    new_student.embeddings_generated = False
+    if len(student_details.images) > 0:
+        for i, image in enumerate(student_details.images):
+            Image.open(BytesIO(backend_utils.base64_to_image(image))).save(os.path.join('photos',str(student_details.student_id),f'{str(i)}.png'))
+
+    new_student.video_path = os.path.join('photos',str(student_details.student_id))
     db.add(new_student)
     db.commit()
 
     return
+
 
 @router.post('/delete_students', status_code=status.HTTP_202_ACCEPTED)
 def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -57,16 +69,24 @@ def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), curre
 @router.post('/students_by_session')
 def students_by_session(session_id: schemas.SessionId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
-    enrolled_students = (db.query(models.Student.student_id, models.Student.first_name,
+    students_data = (db.query(models.Student.student_id, models.Student.first_name,
                                   models.Student.last_name, models.Student.email, models.Student.thumbnail)
                                   .join(models.Enrollment)
                                   .filter(models.Enrollment.session_id == session_id.session_id)
                                   .all()
                                   )
-    for student in enrolled_students:
-        student.thumbnail = backend_utils.image_to_base64(student.thumbnail) if student.thumbnail != None else ''
 
-    return enrolled_students
+    students_out = []
+    for student in students_data:
+        students_out.append({
+            'student_id' : student[0],
+            'first_name':student[1],
+            'last_name': student[2],
+            'email':student[3],
+            'thumbnail':backend_utils.image_to_base64(student[4]) if student[4] is not None else ''
+        })
+
+    return students_out
 
 
 @router.post('/students_by_date')
