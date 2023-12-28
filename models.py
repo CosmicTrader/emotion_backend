@@ -78,6 +78,7 @@ class Emotion(Base):
     id = Column(Integer, primary_key=True)
     summary_id = Column(Integer, ForeignKey('summary.id'))
     student_id = Column(Integer, nullable = False)
+    is_present = Column(Boolean, nullable= False)
     anger = Column(Integer, nullable = True)
     disgust = Column(Integer, nullable = True)
     fear = Column(Integer, nullable = True)

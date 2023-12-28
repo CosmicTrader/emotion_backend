@@ -11,10 +11,6 @@ import dateparser
 router = APIRouter(prefix="/reports", tags=['reports'])
 blogger = logging.getLogger('backend_logger')
 
-'''
-add default values in summary and other reports routes
-'''
-
 @router.get('/filter_data')
 def filter_data(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     course_name = [a for (a,) in db.query(models.Session.course_name).distinct().all()]
@@ -40,16 +36,24 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
     except:
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
             f"Time Values are not valid."))
+    queries = []
 
+    if params.course_name != 'all':
+        queries.append(and_(models.Summary.course_name == params.course_name))
+
+    if params.room_number != 0 :
+        queries.append(and_(models.Summary.room_number == params.room_number))
+    
+    if params.session_id != 0 :
+        queries.append(and_(models.Summary.session_id == params.session_id))
+    
     summary_data = (
         db.query(models.Summary)
         .filter(models.Summary.date >= params.start_date,
                 models.Summary.date <=  params.end_date,
                 models.Summary.start_time >= params.start_time,
                 models.Summary.end_time <= params.end_time,
-                models.Summary.course_name == params.course_name,
-                models.Summary.room_number == params.room_number,
-                models.Summary.session_id == params.session_id,
+                *queries
                 # models.Summary.course_name.in_(params.course_name),
                 # models.Summary.room_number.in_(params.room_number),
                 # models.Summary.session_id.in_(params.session_id),
@@ -143,7 +147,7 @@ def get_live_class_summary(db: Session = Depends(get_db), current_user: int = De
 			'absent': 2,
 		},
 		]
-    return live_sessions
+    return data
 
 
 

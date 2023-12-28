@@ -11,7 +11,7 @@ import base64, logging, datetime, os
 router = APIRouter(prefix="/students", tags=['Students'])
 blogger = logging.getLogger('backend_logger')
 
-@router.post('/add_student', status_code=status.HTTP_201_CREATED)
+@router.post('/add_student', status_code=status.HTTP_200_OK)
 def student_registration(student_details: schemas.StudentRegistration, db: Session = Depends(get_db),
                          current_user: int = Depends(oauth2.get_current_user)):
     if current_user.is_admin == False:
@@ -47,7 +47,7 @@ def student_registration(student_details: schemas.StudentRegistration, db: Sessi
     db.add(new_student)
     db.commit()
 
-    return
+    return f'Student Registered.'
 
 
 @router.post('/delete_students', status_code=status.HTTP_202_ACCEPTED)
@@ -112,8 +112,8 @@ def students_by_date(params: schemas.StudentQuery, db: Session = Depends(get_db)
     return students_out
 
 
-@router.post('/get_students')
-def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+@router.post('/get_all_students')
+def get_all_students(student_query: schemas.StudentQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     if current_user.is_admin == False:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -132,7 +132,7 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
 
     if student_query.end_date != '':
         queries.append(and_(models.Student.date <= student_query.end_date))
-    print(queries)
+
     if student_query.course_ ==  True:
         filtered_students = (
             db.query(models.Student,
