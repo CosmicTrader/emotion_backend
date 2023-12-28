@@ -106,12 +106,12 @@ class SummaryQuery(BaseModel):
     end_date: Optional[str] = datetime.datetime.today().date()
     start_time: Optional[str]= '00:00'
     end_time: Optional[str] = '23:59'
-    course_name: Optional[str]
-    room_number: Optional[int]
-    session_id: Optional[int]
-    # course_name: List[str]
-    # room_number: List[int]
-    # session_id: List[int]
+    # course_name: Optional[str]
+    # room_number: Optional[int]
+    # session_id: Optional[int]
+    course_name: List[str]
+    room_number: List[int]
+    session_id: List[int]
 
 class SummaryId(BaseModel):
     summary_id: int

@@ -70,11 +70,10 @@ def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), curre
 def students_by_session(session_id: schemas.SessionId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     students_data = (db.query(models.Student.student_id, models.Student.first_name,
-                                  models.Student.last_name, models.Student.email, models.Student.thumbnail)
-                                  .join(models.Enrollment)
-                                  .filter(models.Enrollment.session_id == session_id.session_id)
-                                  .all()
-                                  )
+                              models.Student.last_name, models.Student.email, models.Student.thumbnail)
+                              .join(models.Enrollment)
+                              .filter(models.Enrollment.session_id == session_id.session_id)
+                              .all())
 
     students_out = []
     for student in students_data:
@@ -95,7 +94,8 @@ def students_by_date(params: schemas.StudentQuery, db: Session = Depends(get_db)
                               models.Student.first_name,
                               models.Student.last_name,
                               models.Student.email,
-                              models.Student.thumbnail)
+                              models.Student.thumbnail,
+                              models.Student.date)
                      .filter(models.Student.date >= params.start_date,
                              models.Student.date <= params.end_date)
                     .all()
@@ -107,7 +107,8 @@ def students_by_date(params: schemas.StudentQuery, db: Session = Depends(get_db)
             'first_name':student[1],
             'last_name': student[2],
             'email':student[3],
-            'thumbnail':backend_utils.image_to_base64(student[4]) if student[4] is not None else ''
+            'thumbnail':backend_utils.image_to_base64(student[4]) if student[4] is not None else '',
+            'date':student[5]
         })
     return students_out
 
