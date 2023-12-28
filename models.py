@@ -90,16 +90,6 @@ class Emotion(Base):
 
     summary = relationship('Summary', back_populates='emotion_id')
 
-class Attendance(Base):
-    __tablename__ = 'attendance'
-    timestamp = Column(TIMESTAMP, server_default=func.now())
-    id = Column(Integer, primary_key=True)
-    summary_id = Column(Integer, ForeignKey('summary.id'))
-    student_id = Column(Integer, nullable = False)
-    is_present = Column(Boolean, nullable= False)
-
-    summary = relationship('Summary', back_populates='attendance_id')
-
 class Summary(Base):
     __tablename__ = 'summary'
     date = Column(Date)
@@ -124,7 +114,6 @@ class Summary(Base):
     unknown = Column(Integer, nullable = True)
     
     emotion_id = relationship('Emotion', back_populates='summary')
-    attendance_id = relationship('Attendance', back_populates='summary')
 
 class Camera_Setting(Base):
     __tablename__ = 'camera_settings'

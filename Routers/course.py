@@ -107,27 +107,50 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
 
     existing_session = db.query(models.Session).filter_by(session_id = params.session_id).first()
     if existing_session:
-        pass
-        # existing_session.course_name = 
-
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail=f'Session Id {params.session_id} is already registered. Please use new ID.')
     else:
         session = models.Session(**params.dict(exclude={'student_ids'}))
         session.course_name = registered_course.course_name
         session.course_description = registered_course.course_description
         db.add(session)
-    
+
     db.commit()
     db.refresh(session)
 
-    existing_enrollments = db.query(models.Enrollment).filter(
-            models.Enrollment.student_id.in_(params.student_ids),
-            models.Enrollment.session_id == params.session_id
-        ).all()
 
-    existing_student_ids = {enrollment.student_id for enrollment in existing_enrollments}
     new_enrollments = [models.Enrollment(student_id=student_id,
                                          course_id=registered_course.course_id,
                                          session_id=session.session_id
+                                         )
+                       for student_id in params.student_ids]
+
+    db.add_all(new_enrollments)
+    db.commit()
+
+    return {"new": len(new_enrollments),
+            "course_name": registered_course.course_name,
+            }
+
+@router.post('/edit_session', status_code=status.HTTP_200_OK)
+def edit_session(params: schemas.EditSession, db: Session = Depends(get_db), current_user:int = Depends(oauth2.get_current_user)):
+    if current_user.is_admin == False:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
+            "Not authorized to perform requested action" ))
+    
+    existing_session = db.query(models.Enrollment).filter_by(session_id = params.session_id).first()
+
+    existing_enrollments = db.query(models.Enrollment).filter(models.Enrollment.session_id == params.session_id).all()
+    existing_student_ids = [enrollment.student_id for enrollment in existing_enrollments]
+
+    delete_list = [a for a in existing_student_ids if a not in params.student_ids]
+
+    db.query(models.Enrollment).filter(models.Enrollment.student_id.in_(delete_list),
+                                       models.Enrollment.session_id == 2).delete()
+
+    new_enrollments = [models.Enrollment(student_id=student_id,
+                                         course_id=existing_session.course_id,
+                                         session_id=existing_session.session_id
                                          )
                        for student_id in params.student_ids if student_id not in existing_student_ids
                        ]
@@ -136,9 +159,10 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
     db.commit()
 
     return {"new": len(new_enrollments),
-            "course_name": registered_course.course_name,
+            "delete":len(delete_list),
             "total": len(new_enrollments) + len(existing_student_ids)
             }
+
 
 @router.get('/get_session', status_code= status.HTTP_200_OK)
 def get_session(db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):

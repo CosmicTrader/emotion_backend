@@ -49,7 +49,6 @@ def student_registration(student_details: schemas.StudentRegistration, db: Sessi
 
     return f'Student Registered.'
 
-
 @router.post('/delete_students', status_code=status.HTTP_202_ACCEPTED)
 def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
@@ -69,8 +68,8 @@ def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), curre
 @router.post('/students_by_session')
 def students_by_session(session_id: schemas.SessionId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
-    students_data = (db.query(models.Student.student_id, models.Student.first_name,
-                              models.Student.last_name, models.Student.email, models.Student.thumbnail)
+    students_data = (db.query(models.Student.student_id, models.Student.first_name, models.Student.last_name,
+                              models.Student.email, models.Student.thumbnail, models.Student.date)
                               .join(models.Enrollment)
                               .filter(models.Enrollment.session_id == session_id.session_id)
                               .all())
@@ -82,11 +81,11 @@ def students_by_session(session_id: schemas.SessionId, db: Session = Depends(get
             'first_name':student[1],
             'last_name': student[2],
             'email':student[3],
-            'thumbnail':backend_utils.image_to_base64(student[4]) if student[4] is not None else ''
+            'thumbnail':backend_utils.image_to_base64(student[4]) if student[4] is not None else '',
+            'date':student[5]
         })
 
     return students_out
-
 
 @router.post('/students_by_date')
 def students_by_date(params: schemas.StudentQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):

@@ -98,6 +98,10 @@ class SessionData(BaseModel):
     session_id: str
     student_ids: List[int]
 
+class EditSession(BaseModel):
+    session_id: int
+    student_ids: List[int]
+
 class SessionId(BaseModel):
     session_id: int
 
