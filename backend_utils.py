@@ -45,9 +45,7 @@ def initialise_change(db):
         _change = reset_state
     else:
         db.add(reset_state)
-
     db.commit()
-
     return
 
 def update_changes(camera_number, db):
@@ -85,3 +83,8 @@ def get_images(image):
     thumbnail = cv2.imencode('.png', resized_image)[1]
 
     return _image, thumbnail
+
+def generate_face_embeddings(images):
+    
+    
+    return

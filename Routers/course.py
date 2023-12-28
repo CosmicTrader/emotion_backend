@@ -105,10 +105,17 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
     #         if params.start_time < ses.end_time:
     #             pass
     
-    session = models.Session(**params.dict())
-    session.course_name = registered_course.course_name
-    session.course_description = registered_course.course_description
-    db.add(session)
+    existing_session = db.query(models.Session).filter_by(session_id = params.session_id).first()
+    if existing_session:
+        pass
+        # existing_session.course_name = 
+
+    else:
+        session = models.Session(**params.dict(exclude={'student_ids'}))
+        session.course_name = registered_course.course_name
+        session.course_description = registered_course.course_description
+        db.add(session)
+    
     db.commit()
     db.refresh(session)
 
@@ -124,6 +131,9 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
                                          )
                        for student_id in params.student_ids if student_id not in existing_student_ids
                        ]
+
+    db.add_all(new_enrollments)
+    db.commit()
 
     return {"new": len(new_enrollments),
             "course_name": registered_course.course_name,

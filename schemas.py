@@ -42,7 +42,7 @@ class AddCamera(BaseModel):
     camera_number: int
     name: str
     rtsp: str
-    room_number : str
+    room_number : int
     class Config:
         orm_mode = True
 
@@ -71,9 +71,9 @@ class StudentRegistration(BaseModel):
     mobile_no: Optional[str] = ''
 
 class StudentQuery(BaseModel):
-    course_: bool = True
-    room_numbers: List[int]
-    courses: List[str]
+    course_: Optional[bool] = True
+    room_numbers: Optional[List[int]]
+    courses: Optional[List[str]]
     start_date: Optional[str] = ''
     end_date: Optional[str] = ''
 
@@ -104,11 +104,14 @@ class SessionId(BaseModel):
 class SummaryQuery(BaseModel):
     start_date: Optional[str] = datetime.datetime.today().date()
     end_date: Optional[str] = datetime.datetime.today().date()
-    start_time: Optional[str]= '00:00:00'
-    end_time: Optional[str] = '23:59:59'
-    course_name: List[str]
-    room_number: List[int]
-    session_id: List[int]
+    start_time: Optional[str]= '00:00'
+    end_time: Optional[str] = '23:59'
+    course_name: Optional[str]
+    room_number: Optional[int]
+    session_id: Optional[int]
+    # course_name: List[str]
+    # room_number: List[int]
+    # session_id: List[int]
 
 class SummaryId(BaseModel):
     summary_id: int

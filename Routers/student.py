@@ -9,7 +9,8 @@ router = APIRouter(prefix="/students", tags=['Students'])
 blogger = logging.getLogger('backend_logger')
 
 @router.post('/add_student', status_code=status.HTTP_201_CREATED)
-def student_registration(student_details: schemas.StudentRegistration, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def student_registration(student_details: schemas.StudentRegistration, db: Session = Depends(get_db),
+                         current_user: int = Depends(oauth2.get_current_user)):
     if current_user.is_admin == False:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=(
             "Not authorized to perform requested action" ))
@@ -31,8 +32,7 @@ def student_registration(student_details: schemas.StudentRegistration, db: Sessi
     new_student = models.Student(**student_details.dict(exclude={'video'}))
     new_student.thumbnail = thumbnail
     new_student.date = datetime.datetime.today().strftime('%Y-%m-%d')
-    # student_details.video = backend_utils.generate_face_embeddings(student_details.video) if student_details.video != '' else None
-    
+    student_details.images = backend_utils.generate_face_embeddings(student_details.images) if student_details.images != '' else None
     db.add(new_student)
     db.commit()
 
@@ -54,19 +54,45 @@ def delete_students(ids: schemas.StudentId, db: Session = Depends(get_db), curre
     db.commit()
     return
 
-@router.post('/students_for_session')
-def students_for_session(session_id: schemas.SessionId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+@router.post('/students_by_session')
+def students_by_session(session_id: schemas.SessionId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
     enrolled_students = (db.query(models.Student.student_id, models.Student.first_name,
                                   models.Student.last_name, models.Student.email, models.Student.thumbnail)
                                   .join(models.Enrollment)
                                   .filter(models.Enrollment.session_id == session_id.session_id)
                                   .all()
                                   )
+    for student in enrolled_students:
+        student.thumbnail = backend_utils.image_to_base64(student.thumbnail) if student.thumbnail != None else ''
 
-    return enrolled_students    
+    return enrolled_students
 
 
-@router.post('/get_all_students')
+@router.post('/students_by_date')
+def students_by_date(params: schemas.StudentQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    students_data = (db.query(models.Student.student_id,
+                              models.Student.first_name,
+                              models.Student.last_name,
+                              models.Student.email,
+                              models.Student.thumbnail)
+                     .filter(models.Student.date >= params.start_date,
+                             models.Student.date <= params.end_date)
+                    .all()
+                    )
+    students_out = []
+    for student in students_data:
+        students_out.append({
+            'student_id' : student[0],
+            'first_name':student[1],
+            'last_name': student[2],
+            'email':student[3],
+            'thumbnail':backend_utils.image_to_base64(student[4]) if student[4] is not None else ''
+        })
+    return students_out
+
+
+@router.post('/get_students')
 def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     if current_user.is_admin == False:
@@ -75,9 +101,8 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
 
     queries = []
     student_details = []
-    
-    # if 0 not in student_query.room_numbers:
-    #     queries.append(and_(models.Course.room_number.in_(student_query.room_numbers)))
+    if 0 not in student_query.room_numbers:
+        queries.append(and_(models.Session.room_number.in_(student_query.room_numbers)))
 
     if 'all' not in student_query.courses:
         queries.append(and_(models.Enrollment.course_id.in_(student_query.courses)))
@@ -87,20 +112,20 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
 
     if student_query.end_date != '':
         queries.append(and_(models.Student.date <= student_query.end_date))
-
+    print(queries)
     if student_query.course_ ==  True:
         filtered_students = (
             db.query(models.Student,
-                     func.group_concat(models.Enrollment.course_id).label('course_ids'),
-                    #  func.group_concat(models.Course.room_number).label('room_numbers')
-                     )
+                    func.group_concat(models.Enrollment.course_id).label('course_ids'),
+                    func.group_concat(models.Session.room_number).label('room_numbers')
+                    )
                     .join(models.Enrollment, models.Enrollment.student_id == models.Student.student_id)
                     .join(models.Course, models.Enrollment.course_id == models.Course.course_id)
                     .filter(*queries)
                     .group_by(models.Student.student_id)
                     .order_by(models.Student.date)
                     .all()
-            )
+                    )
 
         for student, course_ids, room_numbers in filtered_students:
             _student = student.__dict__
@@ -123,7 +148,7 @@ def get_students(student_query: schemas.StudentQuery, db: Session = Depends(get_
                 .group_by(models.Student.student_id)
                 .order_by(models.Student.date)
                 .all()
-            )
+                )
 
     for student in filtered_students:
         _student = student.__dict__

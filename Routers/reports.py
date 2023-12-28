@@ -15,7 +15,7 @@ blogger = logging.getLogger('backend_logger')
 add default values in summary and other reports routes
 '''
 
-@router.get('/get_filter_data')
+@router.get('/filter_data')
 def filter_data(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     course_name = [a for (a,) in db.query(models.Session.course_name).distinct().all()]
     room_number = [a for (a,) in db.query(models.Session.room_number).distinct().all()]
@@ -45,11 +45,14 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
         db.query(models.Summary)
         .filter(models.Summary.date >= params.start_date,
                 models.Summary.date <=  params.end_date,
-                models.Summary.time >= params.start_time,
-                models.Summary.time <= params.end_time,
-                models.Summary.course_name.in_(params.course_name),
-                models.Summary.room_number.in_(params.room_number),
-                models.Summary.session_id.in_(params.session_id),
+                models.Summary.start_time >= params.start_time,
+                models.Summary.end_time <= params.end_time,
+                models.Summary.course_name == params.course_name,
+                models.Summary.room_number == params.room_number,
+                models.Summary.session_id == params.session_id,
+                # models.Summary.course_name.in_(params.course_name),
+                # models.Summary.room_number.in_(params.room_number),
+                # models.Summary.session_id.in_(params.session_id),
                 )
         .order_by(models.Summary.date.desc() 
                   )
@@ -57,7 +60,7 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
         )
     return summary_data
 
-@router.post('/emotion_data')
+@router.post('/summary_data')
 def summary_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
                              current_user: int = Depends(oauth2.get_current_user)):
 
@@ -68,26 +71,7 @@ def summary_data(params:schemas.SummaryId, db: Session = Depends(get_db),
         .all()
         )
 
-    attendance_data = (
-        db.query(models.Attendance)
-        .filter(models.Attendance.summary_id == params.summary_id)
-        .order_by(models.Attendance.student_id)
-        .all()
-        )
-
-    return summary_data
-
-# @router.post('/attendence_data')
-# def attendance_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
-#                              current_user: int = Depends(oauth2.get_current_user)):
-#     summary_data = (
-#         db.query(models.Attendance)
-#         .filter(models.Attendance.summary_id == params.summary_id)
-#         .order_by(models.Attendance.student_id)
-#         .all()
-#         )
-
-#     return summary_data
+    return emotion_data
 
 @router.post('/get_home_page_summary')
 def get_home_page_summary(query_params: schemas.HomeSummary, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -106,6 +90,7 @@ def get_home_page_summary(query_params: schemas.HomeSummary, db: Session = Depen
             'course_name':summary.course_name,
             'start_time':summary.start_time,
             'end_time':summary.end_time,
+            'summary_id':summary.id,
             'present':summary.present,
             'absent':summary.absent,
             'total':summary.total,
@@ -127,7 +112,37 @@ def get_live_class_summary(db: Session = Depends(get_db), current_user: int = De
                     .filter(models.Summary.completed != True)
                     .all()
                     )
-
+    data = [{
+			'room_number': 1,
+			'course_name': "Maths",
+			'present': 74,
+			'absent': 4,
+		},
+		{
+			'room_number': 1,
+			'course_name': "Science",
+			'present': 29,
+			'absent': 3,
+		},
+		{
+			'room_number': 1,
+			'course_name': "Physics",
+			'present': 35,
+			'absent': 1,
+		},
+		{
+			'room_number': 1,
+			'course_name': "Chemistry",
+			'present': 25,
+			'absent': 5,
+		},
+		{
+			'room_number': 1,
+			'course_name': "History",
+			'present': 20,
+			'absent': 2,
+		},
+		]
     return live_sessions
 
 
