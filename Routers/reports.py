@@ -151,35 +151,35 @@ def get_live_class_summary(db: Session = Depends(get_db), current_user: int = De
 
 
 
-# @router.post('/download_csv')
-# def download_alerts_csv(event_query: schemas.EventCount, db: Session = Depends(get_db), 
-#                         current_user: int = Depends(oauth2.get_current_user)):
+@router.post('/download_csv')
+def download_alerts_csv(event_query: schemas.EventCount, db: Session = Depends(get_db), 
+                        current_user: int = Depends(oauth2.get_current_user)):
 
-#     try:
-#         event_query.date = dateparser.parse(event_query.date)
-#     except:
-#         event_query.date = datetime.datetime.today().date()
+    try:
+        event_query.date = dateparser.parse(event_query.date)
+    except:
+        event_query.date = datetime.datetime.today().date()
 
-#     try:
-#         event_query.end_date = dateparser.parse(event_query.end_date)
-#     except:
-#         event_query.end_date = event_query.date
+    try:
+        event_query.end_date = dateparser.parse(event_query.end_date)
+    except:
+        event_query.end_date = event_query.date
 
-#     db_query = db.query(models.Event.date, models.Event.time, models.Event.event, 
-#                         models.Event.camera_name, models.Event.vehicle_number, 
-#                         models.Event.vehicle_category).filter(models.Event.date >= event_query.date, 
-#                                                                models.Event.date <= event_query.end_date)
+    db_query = db.query(models.Event.date, models.Event.time, models.Event.event, 
+                        models.Event.camera_name, models.Event.vehicle_number, 
+                        models.Event.vehicle_category).filter(models.Event.date >= event_query.date, 
+                                                               models.Event.date <= event_query.end_date)
 
-#     if event_query.event != 'all':
-#         db_query = db_query.filter(models.Event.event == event_query.event)
+    if event_query.event != 'all':
+        db_query = db_query.filter(models.Event.event == event_query.event)
 
-#     event_list = db_query.all()
+    event_list = db_query.all()
 
-#     data = pd.DataFrame(event_list, 
-#                         columns=['date', 'time', 'event', 'camera_name', 'vehicle_number', 'vehicle_category']
-#                         )
-#     csv_file = data.to_csv(index=False)
+    data = pd.DataFrame(event_list, 
+                        columns=['date', 'time', 'event', 'camera_name', 'vehicle_number', 'vehicle_category']
+                        )
+    csv_file = data.to_csv(index=False)
 
-#     return Response(content = csv_file, media_type="text/csv", 
-#                     headers = { 'Content-Disposition': f'attachment; filename="{str(event_query.date.date()) }.csv"' }
-#                     )
+    return Response(content = csv_file, media_type="text/csv", 
+                    headers = { 'Content-Disposition': f'attachment; filename="{str(event_query.date.date()) }.csv"' }
+                    )

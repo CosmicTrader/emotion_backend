@@ -33,6 +33,22 @@ def add_course(course_params: schemas.Course, db: Session= Depends(get_db),
 
     return True
 
+@router.get('/get_course', status_code= status.HTTP_200_OK)
+def get_courses(db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
+
+    try:
+        courses = db.query(models.Course).all()
+        courses_list = [{'created_at': course.date,
+                         'course_id': course.course_id,
+                         'course_name': course.course_name,
+                         'course_description': course.course_description,
+                        }
+                        for course in courses 
+                        ]
+        return courses_list
+    except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
 @router.post('/delete_course', status_code=status.HTTP_200_OK)
 def delete_course(course_name: schemas.CourseName, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     if current_user.is_admin == False:
@@ -49,22 +65,6 @@ def delete_course(course_name: schemas.CourseName, db: Session = Depends(get_db)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail=(f"Requested Course not found"))
-
-@router.get('/get_course', status_code= status.HTTP_200_OK)
-def get_courses(db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
-
-    try:
-        courses = db.query(models.Course).all()
-        courses_list = [{'created_at': course.date,
-                         'course_id': course.course_id,
-                         'course_name': course.course_name,
-                         'course_description': course.course_description,
-                        }
-                        for course in courses 
-                        ]
-        return courses_list
-    except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.post('/create_session', status_code= status.HTTP_201_CREATED)
 def create_session(params: schemas.SessionData, db: Session= Depends(get_db), current_user: int= Depends(oauth2.get_current_user)):
@@ -150,6 +150,32 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
             "total": len(new_enrollments) + len(existing_student_ids)
             }
 
+@router.get('/get_session', status_code= status.HTTP_200_OK)
+def get_session(db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
+
+    try:
+        sessions = db.query(models.Session).all()
+        session_list = [{'created_at': session.date,
+                         'session_id': session.session_id,
+                         'course_name': session.course_name,
+                         'course_description': session.course_description,
+                         'room_number': session.room_number,
+                         'start_date': session.start_date,
+                         'end_date': session.end_date,
+                         'start_time': session.start_time,
+                         'end_time': session.end_time,
+                         'students': []
+                        }for session in sessions ]
+
+        for session in session_list:
+            students = db.query(models.Enrollment.student_id).filter_by(session_id = session['session_id']).all()
+            session['students'] = [a for (a,) in students]
+
+        return session_list
+
+    except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
 @router.post('/edit_session', status_code=status.HTTP_200_OK)
 def edit_session(params: schemas.EditSession, db: Session = Depends(get_db), current_user:int = Depends(oauth2.get_current_user)):
     if current_user.is_admin == False:
@@ -180,34 +206,6 @@ def edit_session(params: schemas.EditSession, db: Session = Depends(get_db), cur
             "delete":len(delete_list),
             "total": len(new_enrollments) + len(existing_student_ids)
             }
-
-
-@router.get('/get_session', status_code= status.HTTP_200_OK)
-def get_session(db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
-
-    try:
-        sessions = db.query(models.Session).all()
-        session_list = [{'created_at': session.date,
-                         'session_id': session.session_id,
-                         'course_name': session.course_name,
-                         'course_description': session.course_description,
-                         'room_number': session.room_number,
-                         'start_date': session.start_date,
-                         'end_date': session.end_date,
-                         'start_time': session.start_time,
-                         'end_time': session.end_time,
-                         'students': []
-                        }for session in sessions ]
-
-        for session in session_list:
-            students = db.query(models.Enrollment.student_id).filter_by(session_id = session['session_id']).all()
-            session['students'] = [a for (a,) in students]
-
-        return session_list
-
-    except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
 
 @router.post('/delete_session', status_code=status.HTTP_200_OK)
 def delete_session(session_id: schemas.SessionId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
