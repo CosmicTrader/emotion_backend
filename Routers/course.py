@@ -124,14 +124,15 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
 
     existing_enrollments = (db.query(models.Enrollment)
                             .filter(models.Enrollment.session_id == params.session_id,
-                                    models.Enrollment.student_id.in_(params.student_ids))
+                                    # models.Enrollment.student_id.in_(params.student_ids)
+                                    )
                             .all())
     existing_student_ids = [enrollment.student_id for enrollment in existing_enrollments]
 
     delete_list = [a for a in existing_student_ids if a not in params.student_ids]
 
     db.query(models.Enrollment).filter(models.Enrollment.student_id.in_(delete_list),
-                                       models.Enrollment.session_id == 2).delete()
+                                       models.Enrollment.session_id == params.session_id).delete()
 
     new_enrollments = [models.Enrollment(student_id = student_id,
                                          course_id  = registered_course.course_id,
