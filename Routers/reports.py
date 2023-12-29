@@ -38,14 +38,14 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
             f"Time Values are not valid."))
     queries = []
 
-    if params.course_name != 'all':
-        queries.append(and_(models.Summary.course_name == params.course_name))
+    if 'all' not in params.course_name:
+        queries.append(and_(models.Summary.course_name.in_(params.course_name)))
 
-    if params.room_number != 0 :
-        queries.append(and_(models.Summary.room_number == params.room_number))
+    if 0 not in params.room_number:
+        queries.append(and_(models.Summary.room_number.in_(params.room_number)))
     
-    if params.session_id != 0 :
-        queries.append(and_(models.Summary.session_id == params.session_id))
+    if 0 not in params.session_id:
+        queries.append(and_(models.Summary.session_id.in_(params.session_id)))
     
     summary_data = (
         db.query(models.Summary)

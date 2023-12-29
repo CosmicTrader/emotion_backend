@@ -105,10 +105,14 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
     #         if params.start_time < ses.end_time:
     #             pass
 
-    existing_session = db.query(models.Session).filter_by(session_id = params.session_id).first()
-    if existing_session:
-        existing_session.course_name = registered_course.course_name
-        existing_session.course_description = registered_course.course_description
+    session = db.query(models.Session).filter_by(session_id = params.session_id).first()
+    if session:
+        session.course_name = registered_course.course_name
+        session.course_description = registered_course.course_description
+        session.start_date = params.start_date
+        session.end_date = params.end_date
+        session.start_time = params.start_time
+        session.end_time = params.end_time
     else:
         session = models.Session(**params.dict(exclude={'student_ids'}))
         session.course_name = registered_course.course_name
@@ -118,7 +122,10 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
     db.commit()
     db.refresh(session)
 
-    existing_enrollments = db.query(models.Enrollment).filter(models.Enrollment.session_id == params.session_id).all()
+    existing_enrollments = (db.query(models.Enrollment)
+                            .filter(models.Enrollment.session_id == params.session_id,
+                                    models.Enrollment.student_id.in_(params.student_ids))
+                            .all())
     existing_student_ids = [enrollment.student_id for enrollment in existing_enrollments]
 
     delete_list = [a for a in existing_student_ids if a not in params.student_ids]
@@ -126,9 +133,9 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
     db.query(models.Enrollment).filter(models.Enrollment.student_id.in_(delete_list),
                                        models.Enrollment.session_id == 2).delete()
 
-    new_enrollments = [models.Enrollment(student_id=student_id,
-                                         course_id=registered_course.course_id,
-                                         session_id=session.session_id
+    new_enrollments = [models.Enrollment(student_id = student_id,
+                                         course_id  = registered_course.course_id,
+                                         session_id = session.session_id
                                          )
                        for student_id in params.student_ids if student_id not in existing_student_ids
                        ]
