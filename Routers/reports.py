@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Response, status, HTTPException
+from fastapi import APIRouter, Depends, Response, status, HTTPException, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, aliased
 from sqlalchemy import func, between, or_, and_
 
@@ -6,14 +7,16 @@ import oauth2, schemas, models
 from database import get_db
 import pandas as pd
 import datetime, base64, logging
+import os
 import dateparser
+import backend_utils
 
 router = APIRouter(prefix="/reports", tags=['reports'])
 blogger = logging.getLogger('backend_logger')
 
 @router.get('/filter_data')
 def filter_data(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    course_name = [a for (a,) in db.query(models.Session.course_name).distinct().all()]
+    course_name = [a for (a,) in db.query(models.Course.course_name).distinct().all()]
     room_number = [a for (a,) in db.query(models.Session.room_number).distinct().all()]
     session_id = [a for (a,) in db.query(models.Session.session_id).distinct().all()] 
    
@@ -68,14 +71,43 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
 def summary_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
                              current_user: int = Depends(oauth2.get_current_user)):
 
-    emotion_data = (
-        db.query(models.Emotion)
-        .filter(models.Emotion.summary_id == params.summary_id)
-        .order_by(models.Emotion.student_id)
-        .all()
-        )
+    student_alias = aliased(models.Student, name="student_details")
 
-    return emotion_data
+    emotion_data = (db.query(student_alias.thumbnail,
+                            student_alias.first_name + ' ' + student_alias.last_name,
+                            models.Emotion.student_id,
+                            models.Emotion.is_present,
+                            models.Emotion.anger,
+                            models.Emotion.disgust,
+                            models.Emotion.fear,
+                            models.Emotion.happy,
+                            models.Emotion.neutral,
+                            models.Emotion.sad,
+                            models.Emotion.surprise,
+                            models.Emotion.unknown)
+                            .join(student_alias,
+                                    models.Emotion.student_id == student_alias.student_id)
+                            .filter(models.Emotion.summary_id == params.summary_id)
+                            .order_by(models.Emotion.student_id)
+                            .all())
+
+    data_out = []
+    for data in emotion_data:
+        data_out.append({
+            'thumbnail': backend_utils.image_to_base64(data[0]) if data[0] != None else None,
+            'student_name': data[1],
+            'student_id': data[2],
+            'is_present': data[3],
+            'anger': data[4],
+            'disgust': data[5],
+            'fear':data[6],
+            'happy':data[7],
+            'neutral':data[8],
+            'sad':data[9],
+            'surprise':data[10],
+            'unknown':data[11],
+        })
+    return data_out
 
 @router.post('/get_home_page_summary')
 def get_home_page_summary(query_params: schemas.HomeSummary, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -94,7 +126,7 @@ def get_home_page_summary(query_params: schemas.HomeSummary, db: Session = Depen
             'course_name':summary.course_name,
             'start_time':summary.start_time,
             'end_time':summary.end_time,
-            'summary_id':summary.id,
+            'id':summary.id,
             'present':summary.present,
             'absent':summary.absent,
             'total':summary.total,
@@ -116,70 +148,22 @@ def get_live_class_summary(db: Session = Depends(get_db), current_user: int = De
                     .filter(models.Summary.completed != True)
                     .all()
                     )
-    data = [{
-			'room_number': 1,
-			'course_name': "Maths",
-			'present': 74,
-			'absent': 4,
-		},
-		{
-			'room_number': 1,
-			'course_name': "Science",
-			'present': 29,
-			'absent': 3,
-		},
-		{
-			'room_number': 1,
-			'course_name': "Physics",
-			'present': 35,
-			'absent': 1,
-		},
-		{
-			'room_number': 1,
-			'course_name': "Chemistry",
-			'present': 25,
-			'absent': 5,
-		},
-		{
-			'room_number': 1,
-			'course_name': "History",
-			'present': 20,
-			'absent': 2,
-		},
-		]
-    return data
+    return live_sessions
 
 
+@router.get("/get_video/{session_id}")
+async def get_video(video_filename: str):
+    video_path = os.path.join('videos', f'{video_filename}.mp4')
 
-@router.post('/download_csv')
-def download_alerts_csv(event_query: schemas.EventCount, db: Session = Depends(get_db), 
-                        current_user: int = Depends(oauth2.get_current_user)):
+    if not os.path.exists(video_path):
+        raise HTTPException(status_code=404, detail="Video not found")
 
-    try:
-        event_query.date = dateparser.parse(event_query.date)
-    except:
-        event_query.date = datetime.datetime.today().date()
+    def iterfile(video_path):
+        with open(video_path, mode="rb") as video_file:
+            while True:
+                chunk = video_file.read(8192)  # Adjust the chunk size as needed
+                if not chunk:
+                    break
+                yield chunk
 
-    try:
-        event_query.end_date = dateparser.parse(event_query.end_date)
-    except:
-        event_query.end_date = event_query.date
-
-    db_query = db.query(models.Event.date, models.Event.time, models.Event.event, 
-                        models.Event.camera_name, models.Event.vehicle_number, 
-                        models.Event.vehicle_category).filter(models.Event.date >= event_query.date, 
-                                                               models.Event.date <= event_query.end_date)
-
-    if event_query.event != 'all':
-        db_query = db_query.filter(models.Event.event == event_query.event)
-
-    event_list = db_query.all()
-
-    data = pd.DataFrame(event_list, 
-                        columns=['date', 'time', 'event', 'camera_name', 'vehicle_number', 'vehicle_category']
-                        )
-    csv_file = data.to_csv(index=False)
-
-    return Response(content = csv_file, media_type="text/csv", 
-                    headers = { 'Content-Disposition': f'attachment; filename="{str(event_query.date.date()) }.csv"' }
-                    )
+    return StreamingResponse(iterfile(video_path), media_type="video/mp4", headers={"Content-Disposition": f"inline; filename={video_filename}.mp4"})
