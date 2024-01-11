@@ -1,0 +1,11 @@
+*.pyc
+*.ipynb
+*.txt
+*.log
+
+db_config.ini
+
+photos/
+videos/
+weights/
+zip/

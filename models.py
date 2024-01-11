@@ -1,4 +1,4 @@
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, func, Boolean, Date, Time, Float, DateTime
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, func, Boolean, Date, Time, Float, DateTime, ForeignKeyConstraint
 from sqlalchemy import func
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.mysql import MEDIUMBLOB
@@ -19,31 +19,6 @@ class User(Base):
     mobile_no = Column(String(20), nullable=True)
     image = Column(MEDIUMBLOB, nullable=True)
 
-class Course(Base):
-    __tablename__ = 'course_details'
-    date = Column(Date)
-    id = Column(Integer, primary_key=True)
-    course_id = Column(Integer, nullable= False, unique=True)
-    course_name = Column(String(100), nullable= False, unique=True)
-    course_description = Column(String(1000), nullable= False)
-    
-    enrollments = relationship('Enrollment', back_populates='course')
-
-class Session(Base):
-    __tablename__ = 'session_details'
-    date = Column(Date)
-    id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, nullable= False, unique=True)
-    course_name = Column(String(100), nullable= False)
-    course_description = Column(String(1000), nullable= False)
-    room_number = Column(Integer, nullable = True)
-    start_date = Column(Date)
-    end_date = Column(Date)
-    start_time = Column(Time)
-    end_time = Column(Time)
-
-    enrollments = relationship('Enrollment', back_populates='session')
-
 class Student(Base):
     __tablename__ = 'student_details'
     date = Column(Date)
@@ -61,12 +36,49 @@ class Student(Base):
 
     enrollments = relationship('Enrollment', back_populates='student')
 
+class Course(Base):
+    __tablename__ = 'course_details'
+    date = Column(Date)
+    id = Column(Integer, primary_key=True)
+    course_id = Column(Integer, nullable= False, unique=True)
+    course_name = Column(String(100), nullable= False, unique=True)
+    course_description = Column(String(1000), nullable= False)
+    
+    enrollments = relationship('Enrollment', back_populates='course')
+    sessions = relationship('Session', back_populates='course')
+
+class Session(Base):
+    __tablename__ = 'session_details'
+    date = Column(Date)
+    id = Column(Integer, primary_key=True)
+    session_id = Column(Integer, nullable= False, unique=True)
+    course_id = Column(Integer, ForeignKey('course_details.course_id', ondelete='CASCADE', onupdate='CASCADE'))
+    course_name = Column(String(100), nullable= False)
+    course_description = Column(String(1000), nullable= False)
+    room_number = Column(Integer, nullable = True)
+    start_date = Column(Date)
+    end_date = Column(Date)
+    start_time = Column(Time)
+    end_time = Column(Time)
+
+    course = relationship('Course', back_populates='sessions')
+    enrollments = relationship('Enrollment', back_populates='session')
+    # Add composite foreign key constraint
+    # __table_args__ = (
+    #     ForeignKeyConstraint(
+    #         ['course_id', 'course_name'],
+    #         ['course_details.course_id', 'course_details.course_name'],
+    #         onupdate='CASCADE',
+    #         ondelete='CASCADE'
+    #     ),
+    # )
+
 class Enrollment(Base):
     __tablename__ = 'enrollment_details'
     enrollment_id = Column(Integer, primary_key=True)
-    student_id = Column(Integer, ForeignKey('student_details.student_id'))
-    course_id = Column(Integer, ForeignKey('course_details.course_id'))
-    session_id = Column(Integer, ForeignKey('session_details.session_id'))
+    student_id = Column(Integer, ForeignKey('student_details.student_id', ondelete='CASCADE', onupdate='CASCADE'))
+    course_id = Column(Integer, ForeignKey('course_details.course_id', ondelete='CASCADE', onupdate='CASCADE'))
+    session_id = Column(Integer, ForeignKey('session_details.session_id', ondelete='CASCADE', onupdate='CASCADE'))
 
     student = relationship('Student', back_populates='enrollments')
     course = relationship('Course', back_populates='enrollments')
@@ -76,9 +88,10 @@ class Emotion(Base):
     __tablename__ = 'emotions'
     timestamp = Column(TIMESTAMP, server_default=func.now())
     id = Column(Integer, primary_key=True)
-    summary_id = Column(Integer, ForeignKey('summary.id'))
+    summary_id = Column(Integer, ForeignKey('summary.id', ondelete='SET NULL', onupdate='CASCADE'))
     student_id = Column(Integer, nullable = False)
     is_present = Column(Boolean, nullable= False)
+    late_arrival = Column(Boolean, nullable= False)
     anger = Column(Integer, nullable = True)
     disgust = Column(Integer, nullable = True)
     fear = Column(Integer, nullable = True)
@@ -104,6 +117,8 @@ class Summary(Base):
     present = Column(Integer, nullable= False)
     absent = Column(Integer, nullable= False)
     ratio = Column(Integer, nullable= False)
+    late_students = Column(Integer, nullable= True)
+    students_not_enrolled = Column(Integer, nullable= True)
     anger = Column(Integer, nullable = True)
     disgust = Column(Integer, nullable = True)
     fear = Column(Integer, nullable = True)
@@ -112,7 +127,8 @@ class Summary(Base):
     sad = Column(Integer, nullable = True)
     surprise = Column(Integer, nullable = True)
     unknown = Column(Integer, nullable = True)
-    
+    video_names = Column(String(1000))
+
     emotion_id = relationship('Emotion', back_populates='summary')
 
 class Camera_Setting(Base):
@@ -128,8 +144,9 @@ class Camera_Setting(Base):
 class Change(Base):
     __tablename__ = 'changes'
     id = Column(Integer, primary_key=True)
-    camera_settings = Column(String(500))
-    reset_counting = Column(String(500))
+    cameras = Column(String(500))
+    sessions = Column(String(500))
+    courses = Column(String(500))
 
 class Device_Detail(Base):
     __tablename__ = 'device_details'

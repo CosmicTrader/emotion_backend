@@ -5,6 +5,7 @@ from sqlalchemy import func
 import oauth2, schemas, models
 from database import get_db
 import logging, datetime
+from backend_utils import update_change_in_session, update_change_in_course
 
 router = APIRouter(prefix="/courses", tags=['courses'])
 blogger = logging.getLogger('backend_logger')
@@ -23,12 +24,14 @@ def add_course(course_params: schemas.Course, db: Session= Depends(get_db),
         _course.course_name = course_params.course_name
         _course.course_description = course_params.course_description
         _course.date = datetime.datetime.today().date()
+        update_change_in_course(course_name= course_params.course_name, db= db)
         db.commit()
         return {'message': f'Details for course name "{course_params.course_name}" update successfully'}
 
     course = models.Course(**course_params.dict())
     course.date = datetime.datetime.today().date()
     db.add(course)
+    update_change_in_course(course_name= course_params.course_name, db= db)
     db.commit()
 
     return True
@@ -59,6 +62,8 @@ def delete_course(course_name: schemas.CourseName, db: Session = Depends(get_db)
 
     if course :
         db.delete(course)
+        update_change_in_course(course_name= course_name.course_name, db= db)
+
         db.commit()
         return True
 
@@ -107,6 +112,7 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
 
     session = db.query(models.Session).filter_by(session_id = params.session_id).first()
     if session:
+        session.course_id = registered_course.course_id
         session.course_name = registered_course.course_name
         session.course_description = registered_course.course_description
         session.start_date = params.start_date
@@ -115,6 +121,8 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
         session.end_time = params.end_time
     else:
         session = models.Session(**params.dict(exclude={'student_ids'}))
+        session.course_id = registered_course.course_id
+        session.date = datetime.datetime.today().date()
         session.course_name = registered_course.course_name
         session.course_description = registered_course.course_description
         db.add(session)
@@ -142,6 +150,9 @@ def create_session(params: schemas.SessionData, db: Session= Depends(get_db), cu
                        ]
 
     db.add_all(new_enrollments)
+
+    update_change_in_session(session_id= params.session_id, db= db)
+
     db.commit()
 
     return {"new": len(new_enrollments),
@@ -200,6 +211,9 @@ def edit_session(params: schemas.EditSession, db: Session = Depends(get_db), cur
                        ]
 
     db.add_all(new_enrollments)
+
+    update_change_in_session(session_id= params.session_id, db= db)
+
     db.commit()
 
     return {"new": len(new_enrollments),
@@ -217,7 +231,9 @@ def delete_session(session_id: schemas.SessionId, db: Session = Depends(get_db),
 
     if session :
         db.delete(session)
+        update_change_in_session(session_id= session_id.session_id, db= db)
         db.commit()
+
         return True
 
     else:

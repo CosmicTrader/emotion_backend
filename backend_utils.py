@@ -1,7 +1,13 @@
+import os
+import asyncio
+import asyncssh
 from passlib.context import CryptContext
 import base64, json, cv2
 import models
 import numpy as np
+
+with open('backend_values.json', 'r+') as f:
+    backend_values = json.loads(f.read())
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -36,8 +42,8 @@ def make_static_image(camera_rtsp):
 def initialise_change(db):
 
     reset_state = models.Change(
-        camera_settings = json.dumps([]),
-        reset_counting = json.dumps([])
+        cameras = json.dumps([]),
+        sessions = json.dumps([])
         )
     
     _change = db.query(models.Change).first()
@@ -48,15 +54,31 @@ def initialise_change(db):
     db.commit()
     return
 
-def update_changes(camera_number, db):
+def update_change_in_camera(camera_number, db):
 
     _change = db.query(models.Change).first()
-
-    current_state = json.loads(_change.camera_settings)
+    current_state = json.loads(_change.cameras)
     current_state.append(camera_number)
-    _change.camera_settings = json.dumps(list(set(current_state)))
+    _change.cameras = json.dumps(list(set(current_state)))
     db.commit()
+    return
 
+def update_change_in_session(session_id, db):
+
+    _change = db.query(models.Change).first()
+    current_state = json.loads(_change.sessions)
+    current_state.append(session_id)
+    _change.sessions = json.dumps(list(set(current_state)))
+    db.commit()
+    return
+
+def update_change_in_course(course_name, db):
+
+    _change = db.query(models.Change).first()
+    current_state = json.loads(_change.sessions)
+    current_state.append(course_name)
+    _change.sessions = json.dumps(list(set(current_state)))
+    db.commit()
     return
 
 def get_ip(db):
@@ -66,7 +88,7 @@ def get_ip(db):
     else:
         device_detail = models.Device_Detail(
             ip = '127.0.0.1',
-            number_of_cameras = 5
+            number_of_cameras = 20
             )
         db.add(device_detail)
         db.commit()
@@ -84,7 +106,11 @@ def get_images(image):
 
     return _image, thumbnail
 
-def generate_face_embeddings(images):
-    
-    
-    return
+def get_images_bulk(student_id):
+
+    folder = os.path.join('photos', student_id)
+    photo_name = os.listdir(folder)[0]
+    image = cv2.imread(os.path.jooin(folder, photo_name))
+    thumbnail = cv2.resize(image, (100,100), interpolation= cv2.INTER_AREA)
+    thumbnail = cv2.imencode('.png', thumbnail)[1]
+    return image, thumbnail

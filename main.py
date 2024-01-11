@@ -28,8 +28,13 @@ origins = ["*"]
 methods = ["*"]
 headers = ["*"]
 
-app.add_middleware(CORSMiddleware, allow_origins=origins,
-                   allow_credentials=True, allow_methods=methods, allow_headers=headers)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=methods,
+    allow_headers=headers
+    )
 
 app.include_router(user.router)
 app.include_router(reports.router)
@@ -42,6 +47,7 @@ app.include_router(course.router)
 with Session(engine) as db:
     initialise_change(db)
     host = get_ip(db)
+    print(host)
 
 if __name__ == '__main__':
     uvicorn.run(app=app, port=8000, host=host)

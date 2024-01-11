@@ -66,7 +66,8 @@ class StudentRegistration(BaseModel):
     first_name: str
     last_name: str
     image: Optional[str] = ''
-    images: List[Optional[str]] = []
+    images: Optional[List[str]] = []
+    image_names: Optional[List[str]] = []
     email: Optional[str] = ''
     mobile_no: Optional[str] = ''
 
@@ -110,9 +111,6 @@ class SummaryQuery(BaseModel):
     end_date: Optional[str] = datetime.datetime.today().date()
     start_time: Optional[str]= '00:00'
     end_time: Optional[str] = '23:59'
-    # course_name: Optional[str]
-    # room_number: Optional[int]
-    # session_id: Optional[int]
     course_name: List[str]
     room_number: List[int]
     session_id: List[int]

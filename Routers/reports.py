@@ -8,6 +8,7 @@ from database import get_db
 import pandas as pd
 import datetime, base64, logging
 import os
+import json
 import dateparser
 import backend_utils
 
@@ -46,7 +47,7 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
 
     if 0 not in params.room_number:
         queries.append(and_(models.Summary.room_number.in_(params.room_number)))
-    
+
     if 0 not in params.session_id:
         queries.append(and_(models.Summary.session_id.in_(params.session_id)))
     
@@ -65,7 +66,61 @@ def summary(params:schemas.SummaryQuery, db: Session = Depends(get_db),
                   )
         .all()
         )
+    for summary in summary_data:
+        summary.video_names = json.loads(summary.video_names)
     return summary_data
+
+@router.post('/download_summary_csv', status_code=status.HTTP_200_OK)
+def download_summary_csv(params:schemas.SummaryQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    try:
+        params.start_date = dateparser.parse(params.start_date)
+        params.end_date = dateparser.parse(params.end_date)
+    except:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
+            f"Date Values are not valid."))
+
+    try:
+        params.start_time = datetime.datetime.strptime(params.start_time, '%H:%M')
+        params.end_time = datetime.datetime.strptime(params.end_time, '%H:%M')
+    except:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=(
+            f"Time Values are not valid."))
+    queries = []
+
+    if 'all' not in params.course_name:
+        queries.append(and_(models.Summary.course_name.in_(params.course_name)))
+
+    if 0 not in params.room_number:
+        queries.append(and_(models.Summary.room_number.in_(params.room_number)))
+    
+    if 0 not in params.session_id:
+        queries.append(and_(models.Summary.session_id.in_(params.session_id)))
+    
+    summary_data = (
+        db.query(models.Summary)
+        .filter(models.Summary.date >= params.start_date,
+                models.Summary.date <=  params.end_date,
+                models.Summary.start_time >= params.start_time,
+                models.Summary.end_time <= params.end_time,
+                *queries
+                )
+        .order_by(models.Summary.id.desc() 
+                  )
+        .all()
+        )
+    df_data = []
+    for summary in summary_data:
+        summary.video_names = json.loads(summary.video_names)
+        df_data.append(summary.__dict__)
+
+    df = pd.DataFrame(df_data)
+    df.drop(columns=['_sa_instance_state'], inplace=True)
+    df.rename(columns={'id':'summary_id'}, inplace=True)
+    df = df[['date','summary_id','session_id','completed','start_time','end_time','room_number','course_name','total','present','absent','ratio','late_students','anger','disgust','fear','happy','neutral','sad','surprise','unknown', 'video_names']]
+    return Response(content = df.to_csv(index=False), media_type="text/csv",
+                    headers = { 'Content-Disposition': f'attachment; filename="result.csv"' } 
+                    )
 
 @router.post('/summary_data')
 def summary_data(params:schemas.SummaryId, db: Session = Depends(get_db), 
@@ -109,6 +164,34 @@ def summary_data(params:schemas.SummaryId, db: Session = Depends(get_db),
         })
     return data_out
 
+@router.post('/download_summary_details_csv', status_code=status.HTTP_200_OK)
+def download_summary_details_csv(params:schemas.SummaryId, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    student_alias = aliased(models.Student, name="student_details")
+    emotion_data = (db.query(student_alias.first_name + ' ' + student_alias.last_name,
+                            models.Emotion.student_id,
+                            models.Emotion.is_present,
+                            models.Emotion.anger,
+                            models.Emotion.disgust,
+                            models.Emotion.fear,
+                            models.Emotion.happy,
+                            models.Emotion.neutral,
+                            models.Emotion.sad,
+                            models.Emotion.surprise,
+                            models.Emotion.unknown)
+                            .join(student_alias,
+                                    models.Emotion.student_id == student_alias.student_id)
+                            .filter(models.Emotion.summary_id == params.summary_id)
+                            .order_by(models.Emotion.student_id)
+                            .all())
+
+    columns = ['name', 'id', 'is_present', 'anger','disgust','fear','happy','neutral','sad','surprise','unknown']
+    df = pd.DataFrame(emotion_data, columns=columns)
+    
+    return Response(content = df.to_csv(index=False), media_type="text/csv",
+                    headers = { 'Content-Disposition': f'attachment; filename="result.csv"' } 
+                    )
+
 @router.post('/get_home_page_summary')
 def get_home_page_summary(query_params: schemas.HomeSummary, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     try:
@@ -138,7 +221,8 @@ def get_home_page_summary(query_params: schemas.HomeSummary, db: Session = Depen
             'neutral':summary.neutral,
             'sad':summary.sad,
             'surprise':summary.surprise,
-            'unknown':summary.unknown
+            'unknown':summary.unknown,
+            'video_names': json.loads(summary.video_names)
         })        
     return response
 
@@ -150,20 +234,35 @@ def get_live_class_summary(db: Session = Depends(get_db), current_user: int = De
                     )
     return live_sessions
 
+@router.get("/get_vid/{summary_id}")
+async def get_video(summary_id: str):
 
-@router.get("/get_video/{session_id}")
-async def get_video(video_filename: str):
-    video_path = os.path.join('videos', f'{video_filename}.mp4')
-
+    video_path = os.path.join('videos', f'{summary_id}.mp4')
     if not os.path.exists(video_path):
         raise HTTPException(status_code=404, detail="Video not found")
-
+    print(video_path)
     def iterfile(video_path):
         with open(video_path, mode="rb") as video_file:
+            video_file.seek(0)
             while True:
-                chunk = video_file.read(8192)  # Adjust the chunk size as needed
+                chunk = video_file.read(8192)
                 if not chunk:
                     break
                 yield chunk
+    return StreamingResponse(iterfile(video_path), media_type="video/mp4", headers={"Content-Disposition": "attechment; filename={summary_id}.mp4"})
 
-    return StreamingResponse(iterfile(video_path), media_type="video/mp4", headers={"Content-Disposition": f"inline; filename={video_filename}.mp4"})
+@router.get("/get_video/{summary_id}&{video_filename}")
+async def get_video(summary_id: str, video_filename: str):
+
+    video_path = os.path.join('videos', summary_id, video_filename)
+    if not os.path.exists(video_path):
+        raise HTTPException(status_code=404, detail="Video not found")
+    def iterfile(video_path):
+        with open(video_path, mode="rb") as video_file:
+            video_file.seek(0)
+            while True:
+                chunk = video_file.read(8192)
+                if not chunk:
+                    break
+                yield chunk
+    return StreamingResponse(iterfile(video_path), media_type="video/mp4", headers={"Content-Disposition": "attechment; filename={video_filename}.mp4"})

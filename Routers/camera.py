@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 import oauth2, schemas, models
 from database import get_db
-from backend_utils import image_to_base64, make_static_image, update_changes
+from backend_utils import image_to_base64, make_static_image, update_change_in_camera
 
 router = APIRouter(prefix="/camera", tags=['camera_settings'])
 blogger = logging.getLogger('backend_logger')
@@ -25,13 +25,14 @@ def add_camera(camera_details: schemas.AddCamera, db: Session = Depends(get_db),
     existing_camera = db.query(models.Camera_Setting).filter_by(camera_number=camera_details.camera_number).first()
     
     if existing_camera:
+        existing_camera.date = datetime.datetime.today().date()
         existing_camera.rtsp = camera_details.rtsp
         existing_camera.name = camera_details.name
         existing_camera.room_number = camera_details.room_number
 
         db.commit()
 
-        update_changes(camera_number= camera_details.camera_number, db = db)
+        update_change_in_camera(camera_number= camera_details.camera_number, db = db)
         return {"message": f"Details for camera number {camera_details.camera_number} updated successfully"}
 
     else:
@@ -41,15 +42,13 @@ def add_camera(camera_details: schemas.AddCamera, db: Session = Depends(get_db),
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail = f"Camera limit of {max_number_of_cameras} has been reached")
 
-        new_camera = camera_details.__dict__
-        new_camera['user_id'] = current_user.id
-
-        camera = models.Camera_Setting(**new_camera)
+        camera = models.Camera_Setting(**camera_details.dict())
+        camera.user_id = current_user.id
+        camera.date = datetime.datetime.today().date()
         db.add(camera)
         db.commit()
         db.refresh(camera)
-
-        update_changes(camera_number = camera_details.camera_number, db = db)
+        update_change_in_camera(camera_number = camera_details.camera_number, db = db)
         return camera
 
 @router.post('/delete_camera', status_code=status.HTTP_200_OK)
@@ -65,7 +64,7 @@ def delete_camera(camera_number: schemas.CameraNumber, db: Session = Depends(get
         db.delete(camera)
         db.commit()
 
-        update_changes(camera_number = camera_number.camera_number, db = db)
+        update_change_in_camera(camera_number = camera_number.camera_number, db = db)
         return True
 
     else:
